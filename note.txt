@@ -21,3 +21,13 @@
 	+ n dòng kế mỗi dòng chứa vị trí của n vị trí kết thúc
 	+ Dòng cuối chứa ma trận đầu vào
 
+
++ Ký hiệu:
+	#: tường
+	.: đích
+	*: hộp trong đích
+	$: hộp riêng
+	@: người
+	+: người trong đích
+	 : khoảng trống
+
