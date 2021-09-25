@@ -30,4 +30,7 @@
 	@: người
 	+: người trong đích
 	 : khoảng trống
+	 
++ Tối giản lại code:
+	+ Giảm các thay đổi của matrix k cần thiết
 
