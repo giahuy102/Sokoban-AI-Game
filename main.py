@@ -1,9 +1,10 @@
 import copy as cp
 
 class State:
-    def __init__(self, box_pos, player_pos):
+    def __init__(self, box_pos, player_pos, ancestor):
         self.box_pos = box_pos
         self.player_pos = player_pos
+        self.ancestor = ancestor
 
     #use __eq__ method to compare instance of classes
     def __eq__(self, state):
@@ -16,14 +17,14 @@ class State:
         return self.box_pos.copy()
 
     def copy(self):
-        return State(self.box_pos.copy(), cp.deepcopy(player_pos))
+        return State(self.box_pos.copy(), cp.deepcopy(player_pos), self.ancestor)
 
 class Search:
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         self.num_row = num_row
         self.num_col = num_col
         self.matrix = matrix
-        self.initial_state = State(box_pos, player_pos)
+        self.initial_state = State(box_pos, player_pos, None)
         self.goal_pos = goal_pos
 
     #change matrix when going from (x1, y1) to (x2, y2)
@@ -157,7 +158,7 @@ class Search:
         if ((x - 1, y) in current_state.box_pos):
             new_box_pos.remove((x - 1, y))
             new_box_pos.add((x - 2, y))
-        return State(new_box_pos, [x - 1, y])
+        return State(new_box_pos, [x - 1, y], current_state)
 
     def can_go_down(self, current_state):
         x = current_state.player_pos[0]
@@ -179,7 +180,7 @@ class Search:
         if ((x + 1, y) in current_state.box_pos):
             new_box_pos.remove((x + 1, y))
             new_box_pos.add((x + 2, y))
-        return State(new_box_pos, [x + 1, y])
+        return State(new_box_pos, [x + 1, y], current_state)
 
     def can_go_left(self, current_state):
         x = current_state.player_pos[0]
@@ -201,7 +202,7 @@ class Search:
         if ((x, y - 1) in current_state.box_pos):
             new_box_pos.remove((x, y - 1))
             new_box_pos.add((x, y - 2))
-        return State(new_box_pos, [x, y - 1])
+        return State(new_box_pos, [x, y - 1], current_state)
 
     def can_go_right(self, current_state):
         x = current_state.player_pos[0]
@@ -223,7 +224,7 @@ class Search:
         if ((x, y + 1) in current_state.box_pos):
             new_box_pos.remove((x, y + 1))
             new_box_pos.add((x, y + 2))
-        return State(new_box_pos, [x, y + 1])
+        return State(new_box_pos, [x, y + 1], current_state)
 
 
 
@@ -239,6 +240,24 @@ class Search:
             successors_list.append(self.go_left(state))
         return successors_list
 
+    def construct_path(self, state):
+        path = list()
+        while (state.ancestor):
+            x1 = state.ancestor.player_pos[0]
+            y1 = state.ancestor.player_pos[1]
+            x2 = state.player_pos[0]
+            y2 = state.player_pos[1]
+            if (x2 > x1):
+                path.insert(0, 'D')
+            elif (x2 < x1):
+                path.insert(0, 'U')
+            elif (y2 > y1):
+                path.insert(0, 'R')
+            else:
+                path.insert(0, 'L')
+            state = state.ancestor
+        return path
+            
 
 class DFS(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
@@ -251,7 +270,7 @@ class DFS(Search):
         while (stack):
             current_state = stack.pop()
             if (current_state.is_final_state(self.goal_pos)):
-                return True
+                return self.construct_path(current_state)
             if (current_state not in closed_list):
                 closed_list.append(current_state)
                 stack.extend(self.expand(current_state))
