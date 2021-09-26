@@ -34,3 +34,5 @@
 + Tối giản lại code:
 	+ Giảm các thay đổi của matrix k cần thiết
 
++ Sua lai cho tuan thu quy luat cua OOP
+

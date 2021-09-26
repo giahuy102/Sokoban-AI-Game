@@ -25,4 +25,6 @@
 #     c.add(b)
 # print("--- %s seconds ---" % (time.time() - start_time))
 
-print({(1, 2, 3), (2, 3, 1)} == {(2, 3, 1), (1, 2, 3)})
+a = {(1, 2), (3, 4)}
+a.remove((1, 3))
+print(a)
