@@ -1,5 +1,7 @@
 import copy as cp
 
+test = list()
+
 class State:
     def __init__(self, box_pos, player_pos, ancestor):
         self.box_pos = box_pos
@@ -152,6 +154,7 @@ class Search:
 
     def go_up(self, current_state):
         # print("U")
+        test.append('U')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -174,6 +177,7 @@ class Search:
 
     def go_down(self, current_state):
         # print("D")
+        test.append('D')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -196,6 +200,7 @@ class Search:
 
     def go_left(self, current_state):
         # print("L")
+        test.append('L')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -207,7 +212,7 @@ class Search:
     def can_go_right(self, current_state):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
-        if (y >= self.num_col - 2):
+        if (y >= self.num_col - 2): 
             return False
         t1 = self.matrix[x][y + 1]
         t2 = self.matrix[x][y + 2]
@@ -218,6 +223,7 @@ class Search:
 
     def go_right(self, current_state):
         # print("R")
+        test.append('R')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -281,12 +287,12 @@ class DFS(Search):
 
 
 if __name__ == "__main__":
-    with open('input1.txt', 'r') as file:
-        matrix = [list(line) for line in file]
-    num_row, num_col = len(matrix), len(matrix[0]) - 1 #number of row and column of matrix
+    with open('input.txt', 'r') as file:
+        matrix = [list(line.rstrip()) for line in file]
+    
     box_pos, goal_pos, player_pos = set(), set(), []
-    for i in range(num_row):
-        for j in range(num_col):
+    for i in range(len(matrix)):
+        for j in range(len(matrix[i]) - 1): #omit endline
             if matrix[i][j] == '.':
                 goal_pos.add((i, j))
             elif matrix[i][j] == '*':
@@ -299,7 +305,12 @@ if __name__ == "__main__":
             elif matrix[i][j] == '+':
                 player_pos.extend((i, j))
                 goal_pos.add((i, j))
+    num_row, num_col = len(matrix), max([len(row) for row in matrix]) #number of row and column of matrix 
 
+    #add extra " " character to some lines of matrix
+    for row in matrix:
+        for i in range(num_col):
+            if (i > len(row) - 1):
+                row.append(' ')
     ob = DFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
     print(ob.search())
-    # print(goal_pos)
