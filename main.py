@@ -150,6 +150,7 @@ class Search:
         return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos))
 
     def go_up(self, current_state):
+        # print("U")
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -171,6 +172,7 @@ class Search:
         return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos))
 
     def go_down(self, current_state):
+        # print("D")
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -192,6 +194,7 @@ class Search:
         return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos))
 
     def go_left(self, current_state):
+        # print("L")
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -203,7 +206,7 @@ class Search:
     def can_go_right(self, current_state):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
-        if (y <= 1):
+        if (y >= self.num_col - 2):
             return False
         t1 = self.matrix[x][y + 1]
         t2 = self.matrix[x][y + 2]
@@ -213,6 +216,7 @@ class Search:
         return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos))
 
     def go_right(self, current_state):
+        # print("R")
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -258,7 +262,7 @@ class DFS(Search):
 
 
 if __name__ == "__main__":
-    with open('input.txt', 'r') as file:
+    with open('input1.txt', 'r') as file:
         matrix = [list(line) for line in file]
     num_row, num_col = len(matrix), len(matrix[0]) - 1 #number of row and column of matrix
     box_pos, goal_pos, player_pos = set(), set(), []
@@ -278,5 +282,5 @@ if __name__ == "__main__":
                 goal_pos.add((i, j))
 
     ob = DFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
-    ob.search()
-
+    print(ob.search())
+    # print(goal_pos)
