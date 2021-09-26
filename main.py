@@ -1,4 +1,5 @@
 import copy as cp
+import time
 
 test = list()
 
@@ -234,16 +235,40 @@ class Search:
 
 
 
-    def expand(self, state):
+    # def expand(self, state, closed_list, stack):
+    #     successors_list = list()
+    #     if (self.can_go_up(state)):
+    #         new_state = self.go_up(state)
+    #         if (new_state not in closed_list and new_state not in stack):
+    #             successors_list.append(new_state)
+    #     if (self.can_go_right(state)):
+    #         new_state = self.go_right(state)
+    #         if (new_state not in closed_list and new_state not in stack):
+    #             successors_list.append(new_state)
+    #     if (self.can_go_down(state)):
+    #         new_state = self.go_down(state)
+    #         if (new_state not in closed_list and new_state not in stack):
+    #             successors_list.append(new_state)
+    #     if (self.can_go_left(state)):
+    #         new_state = self.go_left(state)
+    #         if (new_state not in closed_list and new_state not in stack):
+    #             successors_list.append(new_state)
+    #     return successors_list
+
+    def expand(self, state, closed_list, stack):
         successors_list = list()
         if (self.can_go_up(state)):
-            successors_list.append(self.go_up(state))
+            new_state = self.go_up(state)
+            successors_list.append(new_state)
         if (self.can_go_right(state)):
-            successors_list.append(self.go_right(state))
+            new_state = self.go_right(state)
+            successors_list.append(new_state)
         if (self.can_go_down(state)):
-            successors_list.append(self.go_down(state))
+            new_state = self.go_down(state)
+            successors_list.append(new_state)
         if (self.can_go_left(state)):
-            successors_list.append(self.go_left(state))
+            new_state = self.go_left(state)
+            successors_list.append(new_state)
         return successors_list
 
     def construct_path(self, state):
@@ -270,16 +295,19 @@ class DFS(Search):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
 
     def search(self):
+        start_time = time.time()
         closed_list = list()
         stack = list()
         stack.append(self.initial_state)
         while (stack):
-            current_state = stack.pop()
+            current_state = stack.pop(0)
             if (current_state.is_final_state(self.goal_pos)):
+                print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
             if (current_state not in closed_list):
                 closed_list.append(current_state)
-                stack.extend(self.expand(current_state))
+                stack.extend(self.expand(current_state, closed_list, stack))
+        print("--- %s seconds ---" % (time.time() - start_time))
         return False
 
 

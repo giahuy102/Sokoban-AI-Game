@@ -36,3 +36,6 @@
 
 + Sua lai cho tuan thu quy luat cua OOP
 
++ Hash code
++ Deadlock
+
