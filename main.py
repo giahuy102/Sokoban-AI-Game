@@ -13,6 +13,11 @@ class State:
     def __eq__(self, state):
         return self.player_pos == state.player_pos and self.box_pos == state.box_pos
 
+    #used to become hasable object -> object can be contained in set data structure
+    #frozenset is an immutable set -> element can not be added or removed
+    def __hash__(self):
+        return hash((self.player_pos, frozenset(self.box_pos)))
+
     def is_final_state(self, goal_pos):
         return self.box_pos == goal_pos
 
@@ -162,7 +167,7 @@ class Search:
         if ((x - 1, y) in current_state.box_pos):
             new_box_pos.remove((x - 1, y))
             new_box_pos.add((x - 2, y))
-        return State(new_box_pos, [x - 1, y], current_state)
+        return State(new_box_pos, (x - 1, y), current_state)
 
     def can_go_down(self, current_state):
         x = current_state.player_pos[0]
@@ -185,7 +190,7 @@ class Search:
         if ((x + 1, y) in current_state.box_pos):
             new_box_pos.remove((x + 1, y))
             new_box_pos.add((x + 2, y))
-        return State(new_box_pos, [x + 1, y], current_state)
+        return State(new_box_pos, (x + 1, y), current_state)
 
     def can_go_left(self, current_state):
         x = current_state.player_pos[0]
@@ -208,7 +213,7 @@ class Search:
         if ((x, y - 1) in current_state.box_pos):
             new_box_pos.remove((x, y - 1))
             new_box_pos.add((x, y - 2))
-        return State(new_box_pos, [x, y - 1], current_state)
+        return State(new_box_pos, (x, y - 1), current_state)
 
     def can_go_right(self, current_state):
         x = current_state.player_pos[0]
@@ -231,7 +236,7 @@ class Search:
         if ((x, y + 1) in current_state.box_pos):
             new_box_pos.remove((x, y + 1))
             new_box_pos.add((x, y + 2))
-        return State(new_box_pos, [x, y + 1], current_state)
+        return State(new_box_pos, (x, y + 1), current_state)
 
 
 
@@ -255,20 +260,44 @@ class Search:
     #             successors_list.append(new_state)
     #     return successors_list
 
-    def expand(self, state, closed_list, stack):
+    # def expand(self, state, closed_list, stack):
+    #     successors_list = list()
+    #     if (self.can_go_up(state)):
+    #         new_state = self.go_up(state)
+    #         successors_list.append(new_state)
+    #     if (self.can_go_right(state)):
+    #         new_state = self.go_right(state)
+    #         successors_list.append(new_state)
+    #     if (self.can_go_down(state)):
+    #         new_state = self.go_down(state)
+    #         successors_list.append(new_state)
+    #     if (self.can_go_left(state)):
+    #         new_state = self.go_left(state)
+    #         successors_list.append(new_state)
+    #     return successors_list
+
+    def expand(self, state, closed_set):
         successors_list = list()
         if (self.can_go_up(state)):
             new_state = self.go_up(state)
-            successors_list.append(new_state)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                successors_list.append(new_state)
         if (self.can_go_right(state)):
             new_state = self.go_right(state)
-            successors_list.append(new_state)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                successors_list.append(new_state)
         if (self.can_go_down(state)):
             new_state = self.go_down(state)
-            successors_list.append(new_state)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                successors_list.append(new_state)
         if (self.can_go_left(state)):
             new_state = self.go_left(state)
-            successors_list.append(new_state)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                successors_list.append(new_state)
         return successors_list
 
     def construct_path(self, state):
@@ -290,25 +319,44 @@ class Search:
         return path
             
 
-class DFS(Search):
+# class DFS(Search):
+#     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
+#         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+
+#     def search(self):
+#         start_time = time.time()
+#         closed_list = list()
+#         stack = list()
+#         stack.append(self.initial_state)
+#         while (stack):
+#             current_state = stack.pop(0)
+#             if (current_state.is_final_state(self.goal_pos)):
+#                 print("--- %s seconds ---" % (time.time() - start_time))
+#                 return self.construct_path(current_state)
+#             if (current_state not in closed_list):
+#                 closed_list.append(current_state)
+#                 stack.extend(self.expand(current_state, closed_list, stack))
+#         print("--- %s seconds ---" % (time.time() - start_time))
+#         return False
+
+class BFS(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
 
     def search(self):
         start_time = time.time()
-        closed_list = list()
-        stack = list()
-        stack.append(self.initial_state)
-        while (stack):
-            current_state = stack.pop(0)
+        frontier = list()
+        frontier.append(self.initial_state)
+        closed_set = set()
+        closed_set.add(self.initial_state)
+        while (frontier):
+            current_state = frontier.pop(0)
             if (current_state.is_final_state(self.goal_pos)):
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
-            if (current_state not in closed_list):
-                closed_list.append(current_state)
-                stack.extend(self.expand(current_state, closed_list, stack))
+            frontier.extend(self.expand(current_state, closed_set))
         print("--- %s seconds ---" % (time.time() - start_time))
-        return False
+        return ["Impossible"]
 
 
 
@@ -318,7 +366,7 @@ if __name__ == "__main__":
     with open('input.txt', 'r') as file:
         matrix = [list(line.rstrip()) for line in file]
     
-    box_pos, goal_pos, player_pos = set(), set(), []
+    box_pos, goal_pos, player_pos = set(), set(), ()
     for i in range(len(matrix)):
         for j in range(len(matrix[i]) - 1): #omit endline
             if matrix[i][j] == '.':
@@ -329,9 +377,9 @@ if __name__ == "__main__":
             elif matrix[i][j] == '$':
                 box_pos.add((i, j))
             elif matrix[i][j] == '@':
-                player_pos.extend(list((i, j)))
+                player_pos = (i, j)
             elif matrix[i][j] == '+':
-                player_pos.extend((i, j))
+                player_pos = (i, j)
                 goal_pos.add((i, j))
     num_row, num_col = len(matrix), max([len(row) for row in matrix]) #number of row and column of matrix 
 
@@ -340,5 +388,5 @@ if __name__ == "__main__":
         for i in range(num_col):
             if (i > len(row) - 1):
                 row.append(' ')
-    ob = DFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+    ob = BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
     print(ob.search())
