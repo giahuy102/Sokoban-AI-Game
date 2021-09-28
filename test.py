@@ -25,6 +25,32 @@
 #     c.add(b)
 # print("--- %s seconds ---" % (time.time() - start_time))
 
-a = {(1, 2), (3, 4)}
-a.remove((1, 3))
-print(a)
+# a = {(1, 2), (3, 4)}
+# a.remove((1, 3))
+# print(a)
+# from queue import PriorityQueue
+
+# class Test:
+#     def __init__(self, priority):
+#         self.priority = priority
+
+#     def __lt__(self, other):
+#         return self.priority < other.priority
+
+# q = PriorityQueue()
+
+
+# ob1 = Test(1)
+# ob2 = Test(2)
+
+# q.put(ob1)
+# q.put(ob2)
+# q.put(Test(2))
+# print(q.get().priority)
+# print(q.get().priority)
+# print(q.get().priority)
+
+a = (1, 2)
+print(a[0])
+
+
