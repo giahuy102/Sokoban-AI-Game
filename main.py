@@ -27,6 +27,7 @@ class State:
     def copy(self):
         return State(self.box_pos.copy(), cp.deepcopy(player_pos), self.ancestor)
 
+
 class Search:
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         self.num_row = num_row
