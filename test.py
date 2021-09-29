@@ -30,12 +30,12 @@
 # print(a)
 # from queue import PriorityQueue
 
-# class Test:
-#     def __init__(self, priority):
-#         self.priority = priority
+class Test:
+    def __init__(self, priority):
+        self.priority = priority
 
-#     def __lt__(self, other):
-#         return self.priority < other.priority
+    def __lt__(self, other):
+        return self.priority < other.priority
 
 # q = PriorityQueue()
 
@@ -50,7 +50,14 @@
 # print(q.get().priority)
 # print(q.get().priority)
 
-a = (1, 2)
-print(a[0])
+from queue import PriorityQueue
+
+
+ob = PriorityQueue()
+for i in range(10):
+    ob.put(Test(2))
+for i in range(11):
+    ob.get()
+
 
 

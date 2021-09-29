@@ -2,7 +2,9 @@ import copy as cp
 import time
 from queue import PriorityQueue, Queue
 
-test = list()
+test = 0
+
+
 
 class State:
     def __init__(self, box_pos, player_pos, ancestor, gval = -1, fval = -1):
@@ -24,7 +26,7 @@ class State:
     #use for priority queue
     def __lt__(self, state):
         if (self.fval == state.fval):
-            return self.gval > state.gval
+            return self.gval < state.gval
         return self.fval < state.fval
 
     def is_final_state(self, goal_pos):
@@ -61,8 +63,6 @@ class Search:
 
     #f_heuristic is a heuristic function used by A star algorigthm
     def go_up(self, current_state, f_heuristic = None):
-        # print("U")
-        test.append('U')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -88,8 +88,6 @@ class Search:
         return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos))
 
     def go_down(self, current_state, f_heuristic = None):
-        # print("D")
-        test.append('D')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -99,7 +97,7 @@ class Search:
         if (f_heuristic):
             new_gval = current_state.gval + 1
             new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
-            return State(new_box_pos, (x - 1, y), current_state, new_gval, new_fval) 
+            return State(new_box_pos, (x + 1, y), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x + 1, y), current_state)
 
     def can_go_left(self, current_state):
@@ -115,8 +113,6 @@ class Search:
         return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos))
 
     def go_left(self, current_state, f_heuristic = None):
-        # print("L")
-        test.append('L')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -126,7 +122,7 @@ class Search:
         if (f_heuristic):
             new_gval = current_state.gval + 1
             new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
-            return State(new_box_pos, (x - 1, y), current_state, new_gval, new_fval) 
+            return State(new_box_pos, (x, y - 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y - 1), current_state)
 
     def can_go_right(self, current_state):
@@ -142,8 +138,6 @@ class Search:
         return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos))
 
     def go_right(self, current_state, f_heuristic = None):
-        # print("R")
-        test.append('R')
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
@@ -153,33 +147,40 @@ class Search:
         if (f_heuristic):
             new_gval = current_state.gval + 1
             new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
-            return State(new_box_pos, (x - 1, y), current_state, new_gval, new_fval) 
+            return State(new_box_pos, (x, y + 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y + 1), current_state)
 
 
 
     def expand(self, state, closed_set, queue, f_heuristic = None):
         #successors_list = list()
+
         if (self.can_go_up(state)):
             new_state = self.go_up(state, f_heuristic)
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
+
         if (self.can_go_right(state)):
             new_state = self.go_right(state, f_heuristic)
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
-        if (self.can_go_down(state)):
-            new_state = self.go_down(state, f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                queue.put(new_state)
+
+
+
         if (self.can_go_left(state)):
             new_state = self.go_left(state, f_heuristic)
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
+
+        if (self.can_go_down(state)):
+            new_state = self.go_down(state, f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                queue.put(new_state)
+
 
     def construct_path(self, state):
         path = list()
@@ -210,7 +211,7 @@ class BFS(Search):
         frontier.put(self.initial_state)
         closed_set = set()
         closed_set.add(self.initial_state)
-        while (frontier):
+        while (not frontier.empty()):
             current_state = frontier.get()
             if (current_state.is_final_state(self.goal_pos)):
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -226,10 +227,22 @@ class AStar(Search):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos, True)
 
     def f_heuristic(self, box_pos, goal_pos):
-        sum = 0
-        for box in box_pos:
-            sum = sum + min([abs(box[0] - goal[0]) + abs(box[1] - goal[1]) for goal in goal_pos])
-        return sum
+        # sum = 0
+        # for box in box_pos:
+        #     sum = sum + min([abs(box[0] - goal[0]) + abs(box[1] - goal[1]) for goal in goal_pos])
+        # return sum
+
+        # return test + 1
+
+        dist_sum = 0
+        for box in box_pos:       # Find nearest storage point to box that is not in restrictions list
+            min_distace = 2**31
+            for storage in goal_pos:
+                new_dist = (abs(box[0] - storage[0]) + abs(box[1] - storage[1])) # Calculate manhattan distance between box and storage point
+                if new_dist < min_distace:
+                    min_distace = new_dist
+            dist_sum += min_distace
+        return dist_sum
 
     def search(self):
         start_time = time.time()
@@ -237,7 +250,7 @@ class AStar(Search):
         frontier.put(self.initial_state)
         closed_set = set()
         closed_set.add(self.initial_state)
-        while (frontier):
+        while (not frontier.empty()):
             current_state = frontier.get()
             if (current_state.is_final_state(self.goal_pos)):
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -273,5 +286,5 @@ if __name__ == "__main__":
         for i in range(num_col):
             if (i > len(row) - 1):
                 row.append(' ')
-    ob = BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+    ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
     print(ob.search())

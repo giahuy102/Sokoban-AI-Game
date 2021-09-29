@@ -54,3 +54,8 @@
 + https://github.com/gabrielarpino/Sokoban-Solver-AI/blob/master/sokoban.py
 
 
++ Cần đưa hàm heuristic về dạng f(state)
++ Tìm cách cải tiến hàm heuristic
++ Giải quyết deadlock
+
+
