@@ -26,7 +26,7 @@ class State:
     #use for priority queue
     def __lt__(self, state):
         if (self.fval == state.fval):
-            return self.gval < state.gval
+            return self.gval > state.gval
         return self.fval < state.fval
 
     def is_final_state(self, goal_pos):
@@ -261,7 +261,7 @@ class AStar(Search):
         return ["Impossible"]
 
 if __name__ == "__main__":
-    with open('input.txt', 'r') as file:
+    with open('input5.txt', 'r') as file:
         matrix = [list(line.rstrip()) for line in file]
     
     box_pos, goal_pos, player_pos = set(), set(), ()
@@ -286,5 +286,5 @@ if __name__ == "__main__":
         for i in range(num_col):
             if (i > len(row) - 1):
                 row.append(' ')
-    ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+    ob =BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
     print(ob.search())
