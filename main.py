@@ -46,20 +46,44 @@ class DeadlockSolver:
             matrix_flag[goal[0]][goal[1]] = True
             while not q.empty():
                 (x, y) = q.get()
-                if matrix[x + 1][y] != '#' and matrix[x - 1][y] != '#':
-                    if (not matrix_flag[x + 1][y]):
-                        q.put((x + 1, y))
-                        matrix_flag[x + 1][y] = True
+                # if matrix[x + 1][y] != '#' and matrix[x - 1][y] != '#':
+                #     if (not matrix_flag[x + 1][y] and matrix[x + 2][y] != '#'):
+                #         q.put((x + 1, y))
+                #         matrix_flag[x + 1][y] = True
+                #     if (not matrix_flag[x - 1][y] and matrix[x - 2][y] != '#'):
+                #         q.put((x - 1, y))
+                #         matrix_flag[x - 1][y] = True
+                # if matrix[x][y + 1] != '#' and matrix[x][y - 1] != '#':
+                #     if (not matrix_flag[x][y + 1] and matrix[x][y + 2] != '#'):
+                #         q.put((x, y + 1))
+                #         matrix_flag[x][y + 1] = True
+                #     if (not matrix_flag[x][y - 1] and matrix[x][y - 2] != '#'):
+                #         q.put((x, y - 1))
+                #         matrix_flag[x][y - 1] = True
+
+                #pull up
+                if matrix[x - 1][y] != '#' and matrix[x - 2][y] != '#':
                     if (not matrix_flag[x - 1][y]):
                         q.put((x - 1, y))
                         matrix_flag[x - 1][y] = True
-                if matrix[x][y + 1] != '#' and matrix[x][y - 1] != '#':
-                    if (not matrix_flag[x][y + 1]):
-                        q.put((x, y + 1))
-                        matrix_flag[x][y + 1] = True
+
+                #pull down
+                if matrix[x + 1][y] != '#' and matrix[x + 2][y] != '#':
+                    if (not matrix_flag[x + 1][y]):
+                        q.put((x + 1, y))
+                        matrix_flag[x + 1][y] = True
+
+                #pull left
+                if matrix[x][y - 1] != '#' and matrix[x][y - 2] != '#':
                     if (not matrix_flag[x][y - 1]):
                         q.put((x, y - 1))
                         matrix_flag[x][y - 1] = True
+
+                #pull right
+                if matrix[x][y + 1] != '#' and matrix[x][y + 2] != '#':
+                    if (not matrix_flag[x][y + 1]):
+                        q.put((x, y + 1))
+                        matrix_flag[x][y + 1] = True
         return matrix_flag
 
 
@@ -88,7 +112,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x - 1, y) not a wall. 
         #if (x - 1, y) have a box, then (x - 2, y) must be free
-        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos)) and self.no_simple_deallock[x - 1][y]
+        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deallock[x - 2][y]))
 
     #f_heuristic is a heuristic function used by A star algorigthm
     def go_up(self, current_state, f_heuristic = None):
@@ -114,7 +138,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x + 1, y) not a wall. 
         #if (x + 1, y) have a box, then (x + 2, y) must be free
-        return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos)) and self.no_simple_deallock[x + 1][y]
+        return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deallock[x + 2][y]))
 
     def go_down(self, current_state, f_heuristic = None):
         x = current_state.player_pos[0]
@@ -139,7 +163,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x, y - 1) not a wall. 
         #if (x, y - 1) have a box, then (x, y - 2) must be free
-        return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos)) and self.no_simple_deallock[x][y - 1]
+        return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deallock[x][y - 2]))
 
     def go_left(self, current_state, f_heuristic = None):
         x = current_state.player_pos[0]
@@ -164,7 +188,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x, y - 1) not a wall. 
         #if (x, y - 1) have a box, then (x, y - 2) must be free
-        return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos)) and self.no_simple_deallock[x][y + 1]
+        return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deallock[x][y + 2]))
 
     def go_right(self, current_state, f_heuristic = None):
         x = current_state.player_pos[0]
@@ -251,12 +275,16 @@ class BFS(Search):
             a += 1
             current_state = frontier.get()
             if (current_state.is_final_state(self.goal_pos)):
+                
                 print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
             self.expand(current_state, closed_set, frontier)
             #frontier.extend(self.expand(current_state, closed_set))
         print("--- %s seconds ---" % (time.time() - start_time))
+
+        print(self.no_simple_deallock)
+
         return ["Impossible"]
 
 
@@ -331,5 +359,5 @@ if __name__ == "__main__":
         for i in range(num_col):
             if (i > len(row) - 1):
                 row.append(' ')
-    ob = BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+    ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
     print(ob.search())
