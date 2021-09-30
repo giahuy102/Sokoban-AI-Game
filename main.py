@@ -36,6 +36,33 @@ class State:
         return self.box_pos.copy()
 
 
+class DeadlockSolver:
+    @staticmethod
+    def check_simple_deadlock(matrix, num_row, num_col, goal_pos):
+        matrix_flag = [[False] * num_col for i in range(num_row)]
+        for goal in goal_pos:
+            q = Queue()
+            q.put(goal)
+            matrix_flag[goal[0]][goal[1]] = True
+            while not q.empty():
+                (x, y) = q.get()
+                if matrix[x + 1][y] != '#' and matrix[x - 1][y] != '#':
+                    if (not matrix_flag[x + 1][y]):
+                        q.put((x + 1, y))
+                        matrix_flag[x + 1][y] = True
+                    if (not matrix_flag[x - 1][y]):
+                        q.put((x - 1, y))
+                        matrix_flag[x - 1][y] = True
+                if matrix[x][y + 1] != '#' and matrix[x][y - 1] != '#':
+                    if (not matrix_flag[x][y + 1]):
+                        q.put((x, y + 1))
+                        matrix_flag[x][y + 1] = True
+                    if (not matrix_flag[x][y - 1]):
+                        q.put((x, y - 1))
+                        matrix_flag[x][y - 1] = True
+        return matrix_flag
+
+
 
 class Search:
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos, is_astar = False):
@@ -48,6 +75,8 @@ class Search:
             self.initial_state = State(box_pos, player_pos, None)
         self.goal_pos = goal_pos
 
+        self.no_simple_deallock = DeadlockSolver.check_simple_deadlock(self.matrix, self.num_row, self.num_col, self.goal_pos)
+
 
     def can_go_up(self, current_state):
         x = current_state.player_pos[0]
@@ -59,7 +88,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x - 1, y) not a wall. 
         #if (x - 1, y) have a box, then (x - 2, y) must be free
-        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos))
+        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos)) and self.no_simple_deallock[x - 1][y]
 
     #f_heuristic is a heuristic function used by A star algorigthm
     def go_up(self, current_state, f_heuristic = None):
@@ -85,7 +114,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x + 1, y) not a wall. 
         #if (x + 1, y) have a box, then (x + 2, y) must be free
-        return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos))
+        return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos)) and self.no_simple_deallock[x + 1][y]
 
     def go_down(self, current_state, f_heuristic = None):
         x = current_state.player_pos[0]
@@ -110,7 +139,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x, y - 1) not a wall. 
         #if (x, y - 1) have a box, then (x, y - 2) must be free
-        return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos))
+        return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos)) and self.no_simple_deallock[x][y - 1]
 
     def go_left(self, current_state, f_heuristic = None):
         x = current_state.player_pos[0]
@@ -135,7 +164,7 @@ class Search:
         box_pos = current_state.box_pos
         #continue execute if (x, y - 1) not a wall. 
         #if (x, y - 1) have a box, then (x, y - 2) must be free
-        return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos))
+        return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos)) and self.no_simple_deallock[x][y + 1]
 
     def go_right(self, current_state, f_heuristic = None):
         x = current_state.player_pos[0]
