@@ -1,8 +1,10 @@
-[False, False, False, False, False, False, False, False, False], 
-[False, False, False, False, False, False, False, False, False], 
-[False, False, True, True, True, True, True, False, False], 
-[False, False, True, True, True, True, True, False, False], 
-[False, False, False, True, True, True, False, False, False], 
-[False, False, False, False, True, False, False, False, False], 
-[False, False, False, False, False, False, False, False, False]
-['Impossible']
+        if (matrix[x][y + 1] == '#' or matrix[x][y - 1] == '#'):
+            x_axis_feeze = True
+        elif not no_simple_deadlock[x][y + 1] or not no_simple_deadlock[x][y - 1]:
+            x_axis_freeze = True
+        elif (x, y + 1) in box_pos and ((x, y + 1) in checked_list or DeadlockSolver.has_freeze_deadlock((x, y + 1), matrix, box_pos, goal_pos, no_simple_deadlock, checked_list)):
+            x_axis_feeze = True
+        elif (x, y - 1) in box_pos and ((x, y - 1) in checked_list or DeadlockSolver.has_freeze_deadlock((x, y - 1), matrix, box_pos, goal_pos, no_simple_deadlock, checked_list)):
+            x_axis_feeze = True
+        else:
+            return False
