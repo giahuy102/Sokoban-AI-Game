@@ -160,12 +160,14 @@ class Search:
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
+                # print("U")
 
         if (self.can_go_right(state)):
             new_state = self.go_right(state, f_heuristic)
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
+                # print("R")
 
 
 
@@ -174,12 +176,14 @@ class Search:
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
+                # print("L")
 
         if (self.can_go_down(state)):
             new_state = self.go_down(state, f_heuristic)
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 queue.put(new_state)
+                # print("D")
 
 
     def construct_path(self, state):
@@ -211,9 +215,14 @@ class BFS(Search):
         frontier.put(self.initial_state)
         closed_set = set()
         closed_set.add(self.initial_state)
+
+        a = 0
+
         while (not frontier.empty()):
+            a += 1
             current_state = frontier.get()
             if (current_state.is_final_state(self.goal_pos)):
+                print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
             self.expand(current_state, closed_set, frontier)
@@ -250,9 +259,16 @@ class AStar(Search):
         frontier.put(self.initial_state)
         closed_set = set()
         closed_set.add(self.initial_state)
+
+        a = 0
+
         while (not frontier.empty()):
+
+            a += 1
+
             current_state = frontier.get()
             if (current_state.is_final_state(self.goal_pos)):
+                print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
             self.expand(current_state, closed_set, frontier, self.f_heuristic)
@@ -261,7 +277,7 @@ class AStar(Search):
         return ["Impossible"]
 
 if __name__ == "__main__":
-    with open('input5.txt', 'r') as file:
+    with open('input.txt', 'r') as file:
         matrix = [list(line.rstrip()) for line in file]
     
     box_pos, goal_pos, player_pos = set(), set(), ()
@@ -286,5 +302,5 @@ if __name__ == "__main__":
         for i in range(num_col):
             if (i > len(row) - 1):
                 row.append(' ')
-    ob =BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+    ob = BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
     print(ob.search())
