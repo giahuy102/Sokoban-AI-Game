@@ -53,11 +53,13 @@ class Test:
 from queue import PriorityQueue
 
 
-ob = PriorityQueue()
-for i in range(10):
-    ob.put(Test(2))
-for i in range(11):
-    ob.get()
+# ob = PriorityQueue()
+# for i in range(10):
+#     ob.put(Test(2))
+# for i in range(11):
+#     ob.get()
+
+print(1 and print(1))
 
 
 
