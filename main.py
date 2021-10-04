@@ -134,14 +134,11 @@ class DeadlockSolver:
         return x_axis_freeze and y_axis_freeze and last_check
 
 class Search:
-    def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos, is_astar = False):
+    def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         self.num_row = num_row
         self.num_col = num_col
         self.matrix = matrix
-        if (is_astar):
-            self.initial_state = State(box_pos, player_pos, None, 0, 0)    
-        else:
-            self.initial_state = State(box_pos, player_pos, None)
+        self.initial_state = State(box_pos, player_pos, None)
         self.goal_pos = goal_pos
 
         self.no_simple_deadlock = DeadlockSolver.check_simple_deadlock(self.matrix, self.num_row, self.num_col, self.goal_pos)
@@ -348,7 +345,9 @@ class BFS(Search):
 
 class AStar(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
-        super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos, True)
+        super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+        self.initial_state.gval = 0
+        self.initial_state.fval = self.f_heuristic(box_pos, goal_pos)
 
     def expand(self, state, closed_set, frontier, state_lookup_table):
         if (self.can_go_up(state)):
@@ -356,6 +355,7 @@ class AStar(Search):
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 frontier.put(new_state)
+                state_lookup_table[hash(new_state)] = new_state
             else:
                 id = hash(new_state)
                 if (new_state.fval < state_lookup_table[id].fval):
@@ -368,6 +368,7 @@ class AStar(Search):
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 frontier.put(new_state)
+                state_lookup_table[hash(new_state)] = new_state
             else:
                 id = hash(new_state)
                 if (new_state.fval < state_lookup_table[id].fval):
@@ -380,6 +381,7 @@ class AStar(Search):
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 frontier.put(new_state)
+                state_lookup_table[hash(new_state)] = new_state
             else:
                 id = hash(new_state)
                 if (new_state.fval < state_lookup_table[id].fval):
@@ -392,6 +394,7 @@ class AStar(Search):
             if (new_state not in closed_set):
                 closed_set.add(new_state)
                 frontier.put(new_state)
+                state_lookup_table[hash(new_state)] = new_state
             else:
                 id = hash(new_state)
                 if (new_state.fval < state_lookup_table[id].fval):
@@ -430,34 +433,68 @@ class AStar(Search):
         return ["Impossible"]
 
 if __name__ == "__main__":
-    with open('input.txt', 'r') as file:
-        matrix = [list(line.rstrip()) for line in file]
+    # with open('input.txt', 'r') as file:
+    #     matrix = [list(line.rstrip()) for line in file]
     
-    box_pos, goal_pos, player_pos = set(), set(), ()
-    for i in range(len(matrix)):
-        for j in range(len(matrix[i]) - 1): #omit endline
-            if matrix[i][j] == '.':
-                goal_pos.add((i, j))
-            elif matrix[i][j] == '*':
-                box_pos.add((i, j))
-                goal_pos.add((i, j))
-            elif matrix[i][j] == '$':
-                box_pos.add((i, j))
-            elif matrix[i][j] == '@':
-                player_pos = (i, j)
-            elif matrix[i][j] == '+':
-                player_pos = (i, j)
-                goal_pos.add((i, j))
-    num_row, num_col = len(matrix), max([len(row) for row in matrix]) #number of row and column of matrix 
+    # box_pos, goal_pos, player_pos = set(), set(), ()
+    # for i in range(len(matrix)):
+    #     for j in range(len(matrix[i]) - 1): #omit endline
+    #         if matrix[i][j] == '.':
+    #             goal_pos.add((i, j))
+    #         elif matrix[i][j] == '*':
+    #             box_pos.add((i, j))
+    #             goal_pos.add((i, j))
+    #         elif matrix[i][j] == '$':
+    #             box_pos.add((i, j))
+    #         elif matrix[i][j] == '@':
+    #             player_pos = (i, j)
+    #         elif matrix[i][j] == '+':
+    #             player_pos = (i, j)
+    #             goal_pos.add((i, j))
+    # num_row, num_col = len(matrix), max([len(row) for row in matrix]) #number of row and column of matrix 
 
-    #add extra " " character to some lines of matrix
-    for row in matrix:
-        for i in range(num_col):
-            if (i > len(row) - 1):
-                row.append(' ')
-    ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
-    print(ob.search())
+    # #add extra " " character to some lines of matrix
+    # for row in matrix:
+    #     for i in range(num_col):
+    #         if (i > len(row) - 1):
+    #             row.append(' ')
+    # ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+    # print(ob.search())
 
     # print(box_pos)
     # no_simple_deadlock = DeadlockSolver.check_simple_deadlock(matrix, num_row, num_col, goal_pos)
     # print(DeadlockSolver.has_freeze_deadlock((3, 5), matrix, box_pos, goal_pos, no_simple_deadlock, set()))
+
+    for i in range (1, 41):
+        print(i)
+        with open('Mini Cosmos/Level_' + str(i) + '.txt', 'r') as file:
+            matrix = [list(line.rstrip()) for line in file]
+        
+        box_pos, goal_pos, player_pos = set(), set(), ()
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i]) - 1): #omit endline
+                if matrix[i][j] == '.':
+                    goal_pos.add((i, j))
+                elif matrix[i][j] == '*':
+                    box_pos.add((i, j))
+                    goal_pos.add((i, j))
+                elif matrix[i][j] == '$':
+                    box_pos.add((i, j))
+                elif matrix[i][j] == '@':
+                    player_pos = (i, j)
+                elif matrix[i][j] == '+':
+                    player_pos = (i, j)
+                    goal_pos.add((i, j))
+        num_row, num_col = len(matrix), max([len(row) for row in matrix]) #number of row and column of matrix 
+
+        #add extra " " character to some lines of matrix
+        for row in matrix:
+            for i in range(num_col):
+                if (i > len(row) - 1):
+                    row.append(' ')
+
+        ob = BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+        print(ob.search())
+        ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+        print(ob.search())
+        print("---------------------------------")
