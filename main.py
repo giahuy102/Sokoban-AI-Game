@@ -1,13 +1,5 @@
-import copy as cp
 import time
 from queue import PriorityQueue, Queue
-
-# from random import seed
-# from random import randint
-
-test = 0
-# seed(1)
-
 
 class State:
     def __init__(self, box_pos, player_pos, ancestor, gval = -1, fval = -1):
@@ -49,21 +41,6 @@ class DeadlockSolver:
             matrix_flag[goal[0]][goal[1]] = True
             while not q.empty():
                 (x, y) = q.get()
-                # if matrix[x + 1][y] != '#' and matrix[x - 1][y] != '#':
-                #     if (not matrix_flag[x + 1][y] and matrix[x + 2][y] != '#'):
-                #         q.put((x + 1, y))
-                #         matrix_flag[x + 1][y] = True
-                #     if (not matrix_flag[x - 1][y] and matrix[x - 2][y] != '#'):
-                #         q.put((x - 1, y))
-                #         matrix_flag[x - 1][y] = True
-                # if matrix[x][y + 1] != '#' and matrix[x][y - 1] != '#':
-                #     if (not matrix_flag[x][y + 1] and matrix[x][y + 2] != '#'):
-                #         q.put((x, y + 1))
-                #         matrix_flag[x][y + 1] = True
-                #     if (not matrix_flag[x][y - 1] and matrix[x][y - 2] != '#'):
-                #         q.put((x, y - 1))
-                #         matrix_flag[x][y - 1] = True
-
                 #pull up
                 if matrix[x - 1][y] != '#' and matrix[x - 2][y] != '#':
                     if (not matrix_flag[x - 1][y]):
@@ -92,7 +69,6 @@ class DeadlockSolver:
 
     @staticmethod
     def has_freeze_deadlock(pos, matrix, box_pos, goal_pos, no_simple_deadlock, checked_list):
-        # print(pos)
         (x, y) = pos
         checked_list.add((x, y))
         x_axis_freeze = False
@@ -119,19 +95,12 @@ class DeadlockSolver:
         else:
             return False
 
-        
-        
-        # if (t):
-        #     print(pos)
-        #     print(box_pos)
-        # return t
-
-        last_check = False
+        all_box_not_in_goal = False
         for box in checked_list:
             if (box not in goal_pos):
-                last_check = True
+                all_box_not_in_goal = True
 
-        return x_axis_freeze and y_axis_freeze and last_check
+        return x_axis_freeze and y_axis_freeze and all_box_not_in_goal
 
 class Search:
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
@@ -151,18 +120,30 @@ class Search:
             return False
         t1 = self.matrix[x - 1][y]
         t2 = self.matrix[x - 2][y]
-        box_pos = current_state.box_pos.copy()
+        box_pos = current_state.box_pos
         if ((x - 1, y) in box_pos):
             new_box = box_pos.copy()
             new_box.remove((x - 1, y))
             new_box.add((x - 2, y))
+        if t1 == '#':
+            return False
+        elif (x - 1, y) in box_pos:
+            if t2 == '#' or (x - 2, y) in box_pos or not self.no_simple_deadlock[x - 2][y]:
+                return False
+            else:
+                new_box = box_pos.copy()
+                new_box.remove((x - 1, y))
+                new_box.add((x - 2, y))
+                if DeadlockSolver.has_freeze_deadlock((x - 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()):
+                    return False
+        return True
         
         #continue execute if (x - 1, y) not a wall. 
         #if (x - 1, y) have a box, then (x - 2, y) must be free
 
         # return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deadlock[x - 2][y]))
 
-        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deadlock[x - 2][y] and (not DeadlockSolver.has_freeze_deadlock((x - 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))    #heuristic is a heuristic function used by A star algorigthm
+        # return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deadlock[x - 2][y] and (not DeadlockSolver.has_freeze_deadlock((x - 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))    #heuristic is a heuristic function used by A star algorigthm
     def go_up(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
@@ -185,17 +166,29 @@ class Search:
         t2 = self.matrix[x + 2][y]
         # box_pos = current_state.box_pos
 
-        box_pos = current_state.box_pos.copy()
+        box_pos = current_state.box_pos
         if ((x + 1, y) in box_pos):
             new_box = box_pos.copy()
             new_box.remove((x + 1, y))
             new_box.add((x + 2, y))
+        if t1 == '#':
+            return False
+        elif (x + 1, y) in box_pos:
+            if t2 == '#' or (x + 2, y) in box_pos or not self.no_simple_deadlock[x + 2][y]:
+                return False
+            else:
+                new_box = box_pos.copy()
+                new_box.remove((x + 1, y))
+                new_box.add((x + 2, y))
+                if DeadlockSolver.has_freeze_deadlock((x + 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()):
+                    return False
+        return True
         
         #continue execute if (x + 1, y) not a wall. 
         #if (x + 1, y) have a box, then (x + 2, y) must be free
         # return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deadlock[x + 2][y]))
         # return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deadlock[x + 2][y]))
-        return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deadlock[x + 2][y] and (not DeadlockSolver.has_freeze_deadlock((x + 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
+        # return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deadlock[x + 2][y] and (not DeadlockSolver.has_freeze_deadlock((x + 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
 
     def go_down(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
@@ -217,18 +210,30 @@ class Search:
             return False
         t1 = self.matrix[x][y - 1]
         t2 = self.matrix[x][y - 2]
-        box_pos = current_state.box_pos.copy()
+        box_pos = current_state.box_pos
         if ((x, y - 1) in box_pos):
             new_box = box_pos.copy()
             new_box.remove((x, y - 1))
             new_box.add((x, y - 2))
+        if t1 == '#':
+            return False
+        elif (x, y - 1) in box_pos:
+            if t2 == '#' or (x, y - 2) in box_pos or not self.no_simple_deadlock[x][y - 2]:
+                return False
+            else:
+                new_box = box_pos.copy()
+                new_box.remove((x, y - 1))
+                new_box.add((x, y - 2))
+                if DeadlockSolver.has_freeze_deadlock((x, y - 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()):
+                    return False
+        return True
         
         #continue execute if (x, y - 1) not a wall. 
         #if (x, y - 1) have a box, then (x, y - 2) must be free
         # return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deadlock[x][y - 2]))
 
         # return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deadlock[x][y - 2]))
-        return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deadlock[x][y - 2] and (not DeadlockSolver.has_freeze_deadlock((x, y - 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
+        # return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deadlock[x][y - 2] and (not DeadlockSolver.has_freeze_deadlock((x, y - 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
 
     def go_left(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
@@ -251,18 +256,29 @@ class Search:
         t1 = self.matrix[x][y + 1]
         t2 = self.matrix[x][y + 2]
         box_pos = current_state.box_pos
-        box_pos = current_state.box_pos.copy()
-        if ((x, y + 1) in box_pos):
+        if (x, y + 1) in box_pos:
             new_box = box_pos.copy()
             new_box.remove((x, y + 1))
             new_box.add((x, y + 2))
+        if t1 == '#':
+            return False
+        elif (x, y + 1) in box_pos:
+            if t2 == '#' or (x, y + 2) in box_pos or not self.no_simple_deadlock[x][y + 2]:
+                return False
+            else:
+                new_box = box_pos.copy()
+                new_box.remove((x, y + 1))
+                new_box.add((x, y + 2))
+                if DeadlockSolver.has_freeze_deadlock((x, y + 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()):
+                    return False
+        return True
         
         #continue execute if (x, y + 1) not a wall. 
         #if (x, y + 1) have a box, then (x, y + 2) must be free
         # return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2]))
 
         # return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2]))
-        return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2] and (not DeadlockSolver.has_freeze_deadlock((x, y + 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
+        # return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2] and (not DeadlockSolver.has_freeze_deadlock((x, y + 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
     def go_right(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
@@ -410,41 +426,9 @@ class AStar(Search):
         return ["Impossible"]
 
 if __name__ == "__main__":
-    # with open('input.txt', 'r') as file:
-    #     matrix = [list(line.rstrip()) for line in file]
-    
-    # box_pos, goal_pos, player_pos = set(), set(), ()
-    # for i in range(len(matrix)):
-    #     for j in range(len(matrix[i]) - 1): #omit endline
-    #         if matrix[i][j] == '.':
-    #             goal_pos.add((i, j))
-    #         elif matrix[i][j] == '*':
-    #             box_pos.add((i, j))
-    #             goal_pos.add((i, j))
-    #         elif matrix[i][j] == '$':
-    #             box_pos.add((i, j))
-    #         elif matrix[i][j] == '@':
-    #             player_pos = (i, j)
-    #         elif matrix[i][j] == '+':
-    #             player_pos = (i, j)
-    #             goal_pos.add((i, j))
-    # num_row, num_col = len(matrix), max([len(row) for row in matrix]) #number of row and column of matrix 
-
-    # #add extra " " character to some lines of matrix
-    # for row in matrix:
-    #     for i in range(num_col):
-    #         if (i > len(row) - 1):
-    #             row.append(' ')
-    # ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
-    # print(ob.search())
-
-    # print(box_pos)
-    # no_simple_deadlock = DeadlockSolver.check_simple_deadlock(matrix, num_row, num_col, goal_pos)
-    # print(DeadlockSolver.has_freeze_deadlock((3, 5), matrix, box_pos, goal_pos, no_simple_deadlock, set()))
-
-    for i in range (1, 3):
+    for i in range (1, 41):
         print(i)
-        with open('Micro Cosmos/Level_' + str(i) + '.txt', 'r') as file:
+        with open('Mini Cosmos/Level_' + str(i) + '.txt', 'r') as file:
             matrix = [list(line.rstrip()) for line in file]
         
         box_pos, goal_pos, player_pos = set(), set(), ()
