@@ -162,17 +162,17 @@ class Search:
 
         # return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deadlock[x - 2][y]))
 
-        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deadlock[x - 2][y] and (not DeadlockSolver.has_freeze_deadlock((x - 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))    #f_heuristic is a heuristic function used by A star algorigthm
-    def go_up(self, current_state, f_heuristic = None):
+        return t1 != '#' and ((x - 1, y) not in box_pos or (t2 != '#' and (x - 2, y) not in box_pos and self.no_simple_deadlock[x - 2][y] and (not DeadlockSolver.has_freeze_deadlock((x - 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))    #heuristic is a heuristic function used by A star algorigthm
+    def go_up(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
         if ((x - 1, y) in current_state.box_pos):
             new_box_pos.remove((x - 1, y))
             new_box_pos.add((x - 2, y))
-        if (f_heuristic):
+        if (heuristic):
             new_gval = current_state.gval + 1
-            new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
             return State(new_box_pos, (x - 1, y), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x - 1, y), current_state)
 
@@ -197,16 +197,16 @@ class Search:
         # return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deadlock[x + 2][y]))
         return t1 != '#' and ((x + 1, y) not in box_pos or (t2 != '#' and (x + 2, y) not in box_pos and self.no_simple_deadlock[x + 2][y] and (not DeadlockSolver.has_freeze_deadlock((x + 2, y), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
 
-    def go_down(self, current_state, f_heuristic = None):
+    def go_down(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
         if ((x + 1, y) in current_state.box_pos):
             new_box_pos.remove((x + 1, y))
             new_box_pos.add((x + 2, y))
-        if (f_heuristic):
+        if (heuristic):
             new_gval = current_state.gval + 1
-            new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
             return State(new_box_pos, (x + 1, y), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x + 1, y), current_state)
 
@@ -230,16 +230,16 @@ class Search:
         # return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deadlock[x][y - 2]))
         return t1 != '#' and ((x, y - 1) not in box_pos or (t2 != '#' and (x, y - 2) not in box_pos and self.no_simple_deadlock[x][y - 2] and (not DeadlockSolver.has_freeze_deadlock((x, y - 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
 
-    def go_left(self, current_state, f_heuristic = None):
+    def go_left(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
         if ((x, y - 1) in current_state.box_pos):
             new_box_pos.remove((x, y - 1))
             new_box_pos.add((x, y - 2))
-        if (f_heuristic):
+        if (heuristic):
             new_gval = current_state.gval + 1
-            new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
             return State(new_box_pos, (x, y - 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y - 1), current_state)
 
@@ -263,16 +263,16 @@ class Search:
 
         # return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2]))
         return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2] and (not DeadlockSolver.has_freeze_deadlock((x, y + 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()))))
-    def go_right(self, current_state, f_heuristic = None):
+    def go_right(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         new_box_pos = current_state.deep_copy_box_pos()
         if ((x, y + 1) in current_state.box_pos):
             new_box_pos.remove((x, y + 1))
             new_box_pos.add((x, y + 2))
-        if (f_heuristic):
+        if (heuristic):
             new_gval = current_state.gval + 1
-            new_fval = new_gval + f_heuristic(new_box_pos, self.goal_pos)
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
             return State(new_box_pos, (x, y + 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y + 1), current_state)
 
@@ -299,30 +299,27 @@ class BFS(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
 
+    def handle(self, new_state, closed_set, frontier):
+        if (new_state not in closed_set):
+            closed_set.add(new_state)
+            frontier.put(new_state)
+
     def expand(self, state, closed_set, frontier):
         if (self.can_go_up(state)):
             new_state = self.go_up(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
+            self.handle(new_state, closed_set, frontier)
 
         if (self.can_go_right(state)):
             new_state = self.go_right(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
+            self.handle(new_state, closed_set, frontier)
 
         if (self.can_go_left(state)):
             new_state = self.go_left(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
+            self.handle(new_state, closed_set, frontier)
 
         if (self.can_go_down(state)):
             new_state = self.go_down(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
+            self.handle(new_state, closed_set, frontier)
 
     def search(self):
         start_time = time.time()
@@ -347,62 +344,41 @@ class AStar(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
         self.initial_state.gval = 0
-        self.initial_state.fval = self.f_heuristic(box_pos, goal_pos)
+        self.initial_state.fval = self.heuristic(box_pos, goal_pos)
+
+    def handle(self, new_state, closed_set, frontier, state_lookup_table):
+        if (new_state not in closed_set):
+            closed_set.add(new_state)
+            frontier.put(new_state)
+            state_lookup_table[hash(new_state)] = [new_state, True]
+        else:
+            id = hash(new_state)
+            if (new_state.gval < state_lookup_table[id][0].gval):
+                state_lookup_table[id][0].fval = new_state.fval
+                state_lookup_table[id][0].gval = new_state.gval
+                state_lookup_table[id][0].ancestor = new_state.ancestor
+                if (state_lookup_table[id][1] == False):
+                    state_lookup_table[id][1] = True
+                    frontier.put(new_state)
 
     def expand(self, state, closed_set, frontier, state_lookup_table):
         if (self.can_go_up(state)):
-            new_state = self.go_up(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-                state_lookup_table[hash(new_state)] = new_state
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
+            new_state = self.go_up(state, self.heuristic)
+            self.handle(new_state, closed_set, frontier, state_lookup_table)
 
         if (self.can_go_right(state)):
-            new_state = self.go_right(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-                state_lookup_table[hash(new_state)] = new_state
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
+            new_state = self.go_right(state, self.heuristic)
+            self.handle(new_state, closed_set, frontier, state_lookup_table)
 
         if (self.can_go_left(state)):
-            new_state = self.go_left(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-                state_lookup_table[hash(new_state)] = new_state
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
+            new_state = self.go_left(state, self.heuristic)
+            self.handle(new_state, closed_set, frontier, state_lookup_table)
 
         if (self.can_go_down(state)):
-            new_state = self.go_down(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-                state_lookup_table[hash(new_state)] = new_state
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
+            new_state = self.go_down(state, self.heuristic)
+            self.handle(new_state, closed_set, frontier, state_lookup_table)
 
-    def f_heuristic(self, box_pos, goal_pos):
+    def heuristic(self, box_pos, goal_pos):
         sum = 0
         for box in box_pos:
             sum = sum + min([abs(box[0] - goal[0]) + abs(box[1] - goal[1]) for goal in goal_pos])
@@ -415,7 +391,7 @@ class AStar(Search):
         closed_set = set()
         closed_set.add(self.initial_state)
         state_lookup_table = dict()
-        state_lookup_table[hash(self.initial_state)] = self.initial_state
+        state_lookup_table[hash(self.initial_state)] = [self.initial_state, True]
         a = 0
 
         while (not frontier.empty()):
@@ -423,6 +399,7 @@ class AStar(Search):
             a += 1
 
             current_state = frontier.get()
+            state_lookup_table[hash(self.initial_state)][1] = False
             if (current_state.is_final_state(self.goal_pos)):
                 print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -465,9 +442,9 @@ if __name__ == "__main__":
     # no_simple_deadlock = DeadlockSolver.check_simple_deadlock(matrix, num_row, num_col, goal_pos)
     # print(DeadlockSolver.has_freeze_deadlock((3, 5), matrix, box_pos, goal_pos, no_simple_deadlock, set()))
 
-    for i in range (1, 41):
+    for i in range (1, 3):
         print(i)
-        with open('Mini Cosmos/Level_' + str(i) + '.txt', 'r') as file:
+        with open('Micro Cosmos/Level_' + str(i) + '.txt', 'r') as file:
             matrix = [list(line.rstrip()) for line in file]
         
         box_pos, goal_pos, player_pos = set(), set(), ()
