@@ -1,3 +1,18 @@
+"""Sokoban routines
+    A) Class State
+    Define the structure of a state in state space. This class has some functions helping detemine a state 
+    in search space.
+    B) Class DealockSolver
+    Has some utility function to determine whether a state creates a deadlock situation.
+    C) Class Search
+    Is an abstract class for types of searching. It also contains some utility function for making decisions
+    on changing a state
+    D) Class BFS:
+    Contains some functions implementing BFS algorithm
+    E) Class AStar:
+    Contains some functions implementing AStar algorithm
+"""
+
 import time
 from queue import PriorityQueue, Queue
 
