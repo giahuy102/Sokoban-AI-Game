@@ -1,11 +1,47 @@
-        box_pos = current_state.box_pos.copy()
-        if ((x, y + 1) in box_pos):
-            new_box = box_pos.copy()
-            new_box.remove((x, y + 1))
-            new_box.add((x, y + 2))
-        
-        #continue execute if (x, y + 1) not a wall. 
-        #if (x, y + 1) have a box, then (x, y + 2) must be free
-        # return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2]))
+        if (self.can_go_up(state)):
+            new_state = self.go_up(state, self.f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                frontier.put(new_state)
+            else:
+                id = hash(new_state)
+                if (new_state.fval < state_lookup_table[id].fval):
+                    state_lookup_table[id].fval = new_state.fval
+                    state_lookup_table[id].gval = new_state.gval
+                    state_lookup_table[id].ancestor = new_state.ancestor
 
-        return t1 != '#' and ((x, y + 1) not in box_pos or (t2 != '#' and (x, y + 2) not in box_pos and self.no_simple_deadlock[x][y + 2] and (not DeadlockSolver.has_freeze_deadlock((x, y + 2), self.matrix, new_box, self.goal_pos, self.no_simple_deadlock, set()) or (new_box != goal_pos))))
+        if (self.can_go_right(state)):
+            new_state = self.go_right(state, self.f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                frontier.put(new_state)
+            else:
+                id = hash(new_state)
+                if (new_state.fval < state_lookup_table[id].fval):
+                    state_lookup_table[id].fval = new_state.fval
+                    state_lookup_table[id].gval = new_state.gval
+                    state_lookup_table[id].ancestor = new_state.ancestor
+
+        if (self.can_go_left(state)):
+            new_state = self.go_left(state, self.f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                frontier.put(new_state)
+            else:
+                id = hash(new_state)
+                if (new_state.fval < state_lookup_table[id].fval):
+                    state_lookup_table[id].fval = new_state.fval
+                    state_lookup_table[id].gval = new_state.gval
+                    state_lookup_table[id].ancestor = new_state.ancestor
+
+        if (self.can_go_down(state)):
+            new_state = self.go_down(state, self.f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                frontier.put(new_state)
+            else:
+                id = hash(new_state)
+                if (new_state.fval < state_lookup_table[id].fval):
+                    state_lookup_table[id].fval = new_state.fval
+                    state_lookup_table[id].gval = new_state.gval
+                    state_lookup_table[id].ancestor = new_state.ancestor

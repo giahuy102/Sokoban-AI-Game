@@ -29,7 +29,8 @@ class State:
     #use for priority queue
     def __lt__(self, state):
         if (self.fval == state.fval):
-            return self.gval > state.gval
+            return self.gval < state.gval
+
         return self.fval < state.fval
 
     def is_final_state(self, goal_pos):
@@ -279,6 +280,70 @@ class Search:
             return State(new_box_pos, (x, y + 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y + 1), current_state)
 
+
+
+    def expand(self, state, closed_set, queue, f_heuristic = None, lookup_table = None):
+        #successors_list = list()
+
+        if (self.can_go_up(state)):
+            new_state = self.go_up(state, f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                queue.put(new_state)
+                lookup_table[hash(new_state)] = new_state
+                # print("U")
+            else:
+                id = hash(new_state)
+                if (new_state.fval < lookup_table[id].fval):
+                    lookup_table[id].fval = new_state.fval
+                    lookup_table[id].gval = new_state.gval
+                    lookup_table[id].ancestor = new_state.ancestor
+
+        if (self.can_go_right(state)):
+            new_state = self.go_right(state, f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                queue.put(new_state)
+                lookup_table[hash(new_state)] = new_state
+                # print("U")
+            else:
+                id = hash(new_state)
+                if (new_state.fval < lookup_table[id].fval):
+                    lookup_table[id].fval = new_state.fval
+                    lookup_table[id].gval = new_state.gval
+                    lookup_table[id].ancestor = new_state.ancestor
+
+
+
+        if (self.can_go_left(state)):
+            new_state = self.go_left(state, f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                queue.put(new_state)
+                lookup_table[hash(new_state)] = new_state
+                # print("U")
+            else:
+                id = hash(new_state)
+                if (new_state.fval < lookup_table[id].fval):
+                    lookup_table[id].fval = new_state.fval
+                    lookup_table[id].gval = new_state.gval
+                    lookup_table[id].ancestor = new_state.ancestor
+
+        if (self.can_go_down(state)):
+            new_state = self.go_down(state, f_heuristic)
+            if (new_state not in closed_set):
+                closed_set.add(new_state)
+                queue.put(new_state)
+                lookup_table[hash(new_state)] = new_state
+                # print("U")
+            else:
+                id = hash(new_state)
+                if (new_state.fval < lookup_table[id].fval):
+                    lookup_table[id].fval = new_state.fval
+                    lookup_table[id].gval = new_state.gval
+                    lookup_table[id].ancestor = new_state.ancestor
+
+
     def construct_path(self, state):
         path = list()
         while (state.ancestor):
@@ -302,108 +367,54 @@ class BFS(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
 
-    def expand(self, state, closed_set, frontier):
-        if (self.can_go_up(state)):
-            new_state = self.go_up(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-
-        if (self.can_go_right(state)):
-            new_state = self.go_right(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-
-        if (self.can_go_left(state)):
-            new_state = self.go_left(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-
-        if (self.can_go_down(state)):
-            new_state = self.go_down(state)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-
     def search(self):
         start_time = time.time()
         frontier = Queue()
         frontier.put(self.initial_state)
         closed_set = set()
         closed_set.add(self.initial_state)
+
         a = 0
+
         while (not frontier.empty()):
             a += 1
             current_state = frontier.get()
             if (current_state.is_final_state(self.goal_pos)):
+                
                 print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
             self.expand(current_state, closed_set, frontier)
+            #frontier.extend(self.expand(current_state, closed_set))
         print("--- %s seconds ---" % (time.time() - start_time))
+
+        print(self.no_simple_deadlock)
+
         return ["Impossible"]
 
 
 class AStar(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos, True)
-
-    def expand(self, state, closed_set, frontier, state_lookup_table):
-        if (self.can_go_up(state)):
-            new_state = self.go_up(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
-
-        if (self.can_go_right(state)):
-            new_state = self.go_right(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
-
-        if (self.can_go_left(state)):
-            new_state = self.go_left(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
-
-        if (self.can_go_down(state)):
-            new_state = self.go_down(state, self.f_heuristic)
-            if (new_state not in closed_set):
-                closed_set.add(new_state)
-                frontier.put(new_state)
-            else:
-                id = hash(new_state)
-                if (new_state.fval < state_lookup_table[id].fval):
-                    state_lookup_table[id].fval = new_state.fval
-                    state_lookup_table[id].gval = new_state.gval
-                    state_lookup_table[id].ancestor = new_state.ancestor
+        
 
     def f_heuristic(self, box_pos, goal_pos):
-        sum = 0
-        for box in box_pos:
-            sum = sum + min([abs(box[0] - goal[0]) + abs(box[1] - goal[1]) for goal in goal_pos])
-        return sum
+        # sum = 0
+        # for box in box_pos:
+        #     sum = sum + min([abs(box[0] - goal[0]) + abs(box[1] - goal[1]) for goal in goal_pos])
+        # return sum
+        
+        # return test + 1 + randint(0, 10000)
+
+        dist_sum = 0
+        for box in box_pos:       # Find nearest storage point to box that is not in restrictions list
+            min_distace = 2**31
+            for storage in goal_pos:
+                new_dist = (abs(box[0] - storage[0]) + abs(box[1] - storage[1])) # Calculate manhattan distance between box and storage point
+                if new_dist < min_distace:
+                    min_distace = new_dist
+            dist_sum += min_distace
+        return dist_sum
 
     def search(self):
         start_time = time.time()
@@ -411,26 +422,27 @@ class AStar(Search):
         frontier.put(self.initial_state)
         closed_set = set()
         closed_set.add(self.initial_state)
-        state_lookup_table = dict()
-        state_lookup_table[hash(self.initial_state)] = self.initial_state
+        lookup_table = dict()
+        lookup_table[hash(self.initial_state)] = self.initial_state
         a = 0
 
         while (not frontier.empty()):
 
             a += 1
-
+            
             current_state = frontier.get()
+
             if (current_state.is_final_state(self.goal_pos)):
                 print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
-            self.expand(current_state, closed_set, frontier, state_lookup_table)
+            self.expand(current_state, closed_set, frontier, self.f_heuristic, lookup_table)
             #frontier.extend(self.expand(current_state, closed_set))
         print("--- %s seconds ---" % (time.time() - start_time))
         return ["Impossible"]
 
 if __name__ == "__main__":
-    with open('input.txt', 'r') as file:
+    with open('input7.txt', 'r') as file:
         matrix = [list(line.rstrip()) for line in file]
     
     box_pos, goal_pos, player_pos = set(), set(), ()
@@ -461,3 +473,10 @@ if __name__ == "__main__":
     # print(box_pos)
     # no_simple_deadlock = DeadlockSolver.check_simple_deadlock(matrix, num_row, num_col, goal_pos)
     # print(DeadlockSolver.has_freeze_deadlock((3, 5), matrix, box_pos, goal_pos, no_simple_deadlock, set()))
+    # ob1 = State({(3, 4), (5, 6), (7, 9), (9, 7), (2, 3), (10, 11)}, (1, 2), None)
+    # ob2 = State({(3, 4), (10, 11), (5, 6), (2, 3), (9, 7), (7, 9)}, (1, 2), None)
+    # print(hash(ob1) == hash(ob2))
+    # c = {-1: 'a'}
+    # print(c[-1])
+    # c[-2] = 'd'
+    # print(hash(ob1) == hash(ob2))
