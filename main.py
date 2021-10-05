@@ -227,6 +227,7 @@ class Search(ABC):
         Move up the player and change the state
         @param current_state: the current state object of searching
         @param heuristic: the heuristic function if we implement A* algorithm
+        @return: a state after go up
         """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
@@ -257,7 +258,7 @@ class Search(ABC):
             #If the under player is a box then:
                 #The under of that box must not be a wall and a box
                 #The under of that box must not has any types of deadlocks
-        if (x >= self.num_row - 2):
+        if x >= self.num_row - 2:
             return False
         t1 = self.matrix[x + 1][y]
         t2 = self.matrix[x + 2][y]
@@ -280,13 +281,14 @@ class Search(ABC):
         Move down the player and change the state
         @param current_state: the current state object of searching
         @param heuristic: the heuristic function if we implement A* algorithm
+        @return: a state after go down
         """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
         #delete all box position and add new box position
-        if ((x + 1, y) in current_state.box_pos):
+        if (x + 1, y) in current_state.box_pos:
             new_box_pos.remove((x + 1, y))
             new_box_pos.add((x + 2, y))
         #create g value and f value of new state by using heuristic function
@@ -333,13 +335,14 @@ class Search(ABC):
         Move left the player and change the state
         @param current_state: the current state object of searching
         @param heuristic: the heuristic function if we implement A* algorithm
+        @return: a state after go left
         """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
         #delete all box position and add new box position
-        if ((x, y - 1) in current_state.box_pos):
+        if (x, y - 1) in current_state.box_pos:
             new_box_pos.remove((x, y - 1))
             new_box_pos.add((x, y - 2))
         #create g value and f value of new state by using heuristic function
@@ -363,7 +366,7 @@ class Search(ABC):
             #If the right player is a box then:
                 #The right of that box must not be a wall and a box
                 #The right of that box must not has any types of deadlocks
-        if (y >= self.num_col - 2): 
+        if y >= self.num_col - 2: 
             return False
         t1 = self.matrix[x][y + 1]
         t2 = self.matrix[x][y + 2]
@@ -386,13 +389,14 @@ class Search(ABC):
         Move left the player and change the state
         @param current_state: the current state object of searching
         @param heuristic: the heuristic function if we implement A* algorithm
+        @return: a state after go right
         """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
         #delete all box position and add new box position
-        if ((x, y + 1) in current_state.box_pos):
+        if (x, y + 1) in current_state.box_pos:
             new_box_pos.remove((x, y + 1))
             new_box_pos.add((x, y + 2))
         #create g value and f value of new state by using heuristic function
@@ -410,7 +414,7 @@ class Search(ABC):
         """
         path = list() #initilize list of path
         #Loop to go back to ancestor nodes until reaching initial node
-        while (state.ancestor):
+        while state.ancestor:
             x1 = state.ancestor.player_pos[0]
             y1 = state.ancestor.player_pos[1]
             x2 = state.player_pos[0]
@@ -455,7 +459,7 @@ class BFS(Search):
         #If this is the first time we have explored this state (not in closed_set):
             #Add this state to closed_set
             #Add this state to frontier queue
-        if (new_state not in closed_set):
+        if new_state not in closed_set:
             closed_set.add(new_state)
             frontier.put(new_state)
 
@@ -466,16 +470,16 @@ class BFS(Search):
         @param closed_set: includes all nodes which are in the frontier queue or not in frontier queue but were explored
         @param frontier: a FIFO queue of states (nodes)
         """
-        if (self.can_go_up(state)):
+        if self.can_go_up(state):
             new_state = self.go_up(state)
             self.handle(new_state, closed_set, frontier)
-        if (self.can_go_right(state)):
+        if self.can_go_right(state):
             new_state = self.go_right(state)
             self.handle(new_state, closed_set, frontier)
-        if (self.can_go_left(state)):
+        if self.can_go_left(state):
             new_state = self.go_left(state)
             self.handle(new_state, closed_set, frontier)
-        if (self.can_go_down(state)):
+        if self.can_go_down(state):
             new_state = self.go_down(state)
             self.handle(new_state, closed_set, frontier)
 
@@ -486,10 +490,10 @@ class BFS(Search):
         closed_set = set()
         closed_set.add(self.initial_state)
         a = 0
-        while (not frontier.empty()):
+        while not frontier.empty():
             a += 1
             current_state = frontier.get()
-            if (current_state.is_final_state(self.goal_pos)):
+            if current_state.is_final_state(self.goal_pos):
                 print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
@@ -525,7 +529,7 @@ class AStar(Search):
             #Add this state to closed_set
             #Add this state to frontier queue 
             #Update lookup table
-        if (new_state not in closed_set):
+        if new_state not in closed_set:
             closed_set.add(new_state)
             frontier.put(new_state)
             state_lookup_table[hash(new_state)] = [new_state, True]
@@ -534,11 +538,11 @@ class AStar(Search):
                 #Update values of that state to new state
                 #if that state not in frontier then add it to frontier
             id = hash(new_state)
-            if (new_state.gval < state_lookup_table[id][0].gval):
+            if new_state.gval < state_lookup_table[id][0].gval:
                 state_lookup_table[id][0].fval = new_state.fval
                 state_lookup_table[id][0].gval = new_state.gval
                 state_lookup_table[id][0].ancestor = new_state.ancestor
-                if (state_lookup_table[id][1] == False):
+                if state_lookup_table[id][1] == False:
                     state_lookup_table[id][1] = True
                     frontier.put(new_state)
 
@@ -551,16 +555,16 @@ class AStar(Search):
         @param state_lookup_table: contains entries which have reference to all states that have been explored so far.
         Each entry also has a boolean value to check if the node is in frontier or not
         """
-        if (self.can_go_up(state)):
+        if self.can_go_up(state):
             new_state = self.go_up(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
-        if (self.can_go_right(state)):
+        if self.can_go_right(state):
             new_state = self.go_right(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
-        if (self.can_go_left(state)):
+        if self.can_go_left(state):
             new_state = self.go_left(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
-        if (self.can_go_down(state)):
+        if self.can_go_down(state):
             new_state = self.go_down(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
 
@@ -599,13 +603,13 @@ class AStar(Search):
         state_lookup_table[hash(self.initial_state)] = [self.initial_state, True]
         a = 0
 
-        while (not frontier.empty()):
+        while not frontier.empty():
 
             a += 1
 
             current_state = frontier.get()
             state_lookup_table[hash(self.initial_state)][1] = False
-            if (current_state.is_final_state(self.goal_pos)):
+            if current_state.is_final_state(self.goal_pos):
                 print(a)
                 print("--- %s seconds ---" % (time.time() - start_time))
                 return self.construct_path(current_state)
@@ -615,7 +619,7 @@ class AStar(Search):
         return ["Impossible"]
 
 if __name__ == "__main__":
-    for i in range (1, 41):
+    for i in range (1, 2):
         print(i)
         with open('Mini Cosmos/Level_' + str(i) + '.txt', 'r') as file:
             matrix = [list(line.rstrip()) for line in file]
