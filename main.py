@@ -2,8 +2,9 @@
     A) Class State
     Define the structure of a state in state space. This class has some functions helping detemine a state 
     in search space.
-    B) Class DealockSolver
-    Has some utility function to determine whether a state creates a deadlock situation.
+    B) Class DeadlockSolver
+    Has some utility function to determine whether a state creates a deadlock situation. "Deadlock" means
+    the level isn't solvable anymore, no matter what the user does.
     C) Class Search
     Is an abstract class for types of searching. It also contains some utility function for making decisions
     on changing a state
@@ -25,7 +26,7 @@ class State:
         @param ancestor: An object with State type which displays the state of ancestor (node) of current state (node)
         @param gval: an integer number that is the cost of getting to current state. It's used when we implement A* algorithm
         @param fval: a number (integer or real) that is the cost of getting from state to last state through current state.
-                     It's used when we implement A* algorithm
+        It's used when we implement A* algorithm
         """
         self.box_pos = box_pos
         self.player_pos = player_pos
@@ -44,7 +45,7 @@ class State:
     def __hash__(self):
         """
         The hash method must be implemented for actions to be inserted into sets 
-        and dictionaries (make a hashable object).
+        and dictionaries (make a hashable object). It's also used for implementing index for lookup table of references to nodes.
         @return: The hash value of the action.
         """
         return hash((self.player_pos, frozenset(self.box_pos))) #use frozenset (immutable set) for creating hashable value
@@ -77,47 +78,66 @@ class State:
         """
         return self.box_pos.copy()
 
-
 class DeadlockSolver:
     @staticmethod
     def has_simple_deadlock(matrix, num_row, num_col, goal_pos):
-        matrix_flag = [[True] * num_col for i in range(num_row)]
+        """
+        Static method to pre-mark if a position in matrix has a simple deadlock. Simple deadlocks squares 
+        of a level never change during the gameplay.
+        @param matrix: a map of the gameplay
+        @param num_row: the number of row of matrix
+        @param num_col: the number of column of matrix
+        @param goal_pos: a set of tuple displays positions of the goals
+        @return: a pre-marked matrix with boolean values showing that positions has simple deadlock or not
+        """
+        matrix_flag = [[True] * num_col for i in range(num_row)] #pre-mark all position of matrix as deadlock
+        #for loop with BFS style (use queue data structure) to pull the boxes from all goal positions 
+        #to all posible positions of matrix.
         for goal in goal_pos:
-            q = Queue()
+            q = Queue() #FIFO queue for storing the positions
             q.put(goal)
-            matrix_flag[goal[0]][goal[1]] = False
+            matrix_flag[goal[0]][goal[1]] = False #This position is not a deadlock
             while not q.empty():
                 (x, y) = q.get()
-                #pull up
+                #We can pull a box up if position (x - 1, y) and (x - 2, y) are not the walls
                 if matrix[x - 1][y] != '#' and matrix[x - 2][y] != '#':
                     if (matrix_flag[x - 1][y]):
                         q.put((x - 1, y))
-                        matrix_flag[x - 1][y] = False
-
-                #pull down
+                        matrix_flag[x - 1][y] = False #This position is not a deadlock
+                #We can pull a box down if position (x + 1, y) and (x + 2, y) are not the walls
                 if matrix[x + 1][y] != '#' and matrix[x + 2][y] != '#':
                     if (matrix_flag[x + 1][y]):
                         q.put((x + 1, y))
-                        matrix_flag[x + 1][y] = False
-
-                #pull left
+                        matrix_flag[x + 1][y] = False #This position is not a deadlock
+                #We can pull a box left if position (x, y - 1) and (x, y - 2) are not the walls
                 if matrix[x][y - 1] != '#' and matrix[x][y - 2] != '#':
                     if (matrix_flag[x][y - 1]):
                         q.put((x, y - 1))
-                        matrix_flag[x][y - 1] = False
-
-                #pull right
+                        matrix_flag[x][y - 1] = False #This position is not a deadlock
+                #We can pull a box right if position (x, y + 1) and (x, y + 2) are not the walls
                 if matrix[x][y + 1] != '#' and matrix[x][y + 2] != '#':
                     if (matrix_flag[x][y + 1]):
                         q.put((x, y + 1))
-                        matrix_flag[x][y + 1] = False
+                        matrix_flag[x][y + 1] = False #This position is not a deadlock
         return matrix_flag
-
 
     @staticmethod
     def has_freeze_deadlock(pos, matrix, box_pos, goal_pos, has_simple_deadlock, checked_list):
-        (x, y) = pos
-        checked_list.add((x, y))
+        """
+        Static method a move of a box to a new position has a freeze deadlock
+        @param pos: a new position of the box after being moved
+        @param box_pos: A set of tuples which displays the positions of boxes after moving the box
+        @param goal_pos: a set of tuple displays positions of the goals
+        @param has_simple_deadlock: the pre-marked of simple deadlocks of matrix
+        @param checked_list: a set of tuple storing all freezed deadlock nodes has been checked so far
+        @return: a boolean value show that if a move of the box to new position has deadlock or not
+        """
+        (x, y) = pos #assign new position
+        checked_list.add((x, y)) #mark new position as being checked
+        # The box is blocked along the vertical axis when one of the following checks are true:
+        #     If there is a wall on the left or on the right side of the box then the box is blocked along this axis
+        #     If there is a simple deadlock square on both sides (left and right) of the box the box is blocked along this axis
+        #     If there is a box one the left or right side then this box is blocked if the other box is blocked. 
         x_axis_freeze = False
         if (matrix[x + 1][y] == '#' or matrix[x - 1][y] == '#'):
             x_axis_freeze = True
@@ -129,7 +149,10 @@ class DeadlockSolver:
             x_axis_freeze = True
         else:
             return False
-
+        # The box is blocked along the horizontal axis when one of the following checks are true:
+        #     If there is a wall on the above side or under side of the box then the box is blocked along this axis
+        #     If there is a simple deadlock square on both sides (above and under) of the box the box is blocked along this axis
+        #     If there is a box one the above or under side then this box is blocked if the other box is blocked. 
         y_axis_freeze = False
         if (matrix[x][y + 1] == '#' or matrix[x][y - 1] == '#'):
             y_axis_freeze = True
@@ -141,7 +164,7 @@ class DeadlockSolver:
             y_axis_freeze = True
         else:
             return False
-
+        #If the new box position doesn't make a goal state, we accept this situation as freeze deadlock
         all_box_not_in_goal = False
         for box in checked_list:
             if (box not in goal_pos):
@@ -156,9 +179,7 @@ class Search:
         self.matrix = matrix
         self.initial_state = State(box_pos, player_pos, None)
         self.goal_pos = goal_pos
-
         self.has_simple_deadlock = DeadlockSolver.has_simple_deadlock(self.matrix, self.num_row, self.num_col, self.goal_pos)
-
 
     def can_go_up(self, current_state):
         x = current_state.player_pos[0]
