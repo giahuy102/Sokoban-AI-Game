@@ -580,6 +580,7 @@ class AStar(Search):
         Heuristic function for A Star Algorithm
         @param box_pos: A set of tuples which displays the positions of boxes
         @param goal_pos: a set of tuple displays positions of the goals
+        @return: a heuristic value (h value)
         """
         sum = 0
         #for each box position, calculate its minimum distance to all the goals. 
