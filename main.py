@@ -125,7 +125,7 @@ class DeadlockSolver:
     def has_freeze_deadlock(pos, matrix, box_pos, goal_pos, has_simple_deadlock, checked_list):
         """
         Static method a move of a box to a new position has a freeze deadlock
-        @param pos: a new position of the box after being moved
+        @param pos: a tuple of new position of the box after being moved
         @param box_pos: A set of tuples which displays the positions of boxes after moving the box
         @param goal_pos: a set of tuple displays positions of the goals
         @param has_simple_deadlock: the pre-marked of simple deadlocks of matrix
@@ -139,7 +139,7 @@ class DeadlockSolver:
         #     If there is a simple deadlock square on both sides (left and right) of the box the box is blocked along this axis
         #     If there is a box one the left or right side then this box is blocked if the other box is blocked. 
         x_axis_freeze = False
-        if (matrix[x + 1][y] == '#' or matrix[x - 1][y] == '#'):
+        if matrix[x + 1][y] == '#' or matrix[x - 1][y] == '#':
             x_axis_freeze = True
         elif has_simple_deadlock[x + 1][y] and has_simple_deadlock[x - 1][y]:
             x_axis_freeze = True
@@ -154,7 +154,7 @@ class DeadlockSolver:
         #     If there is a simple deadlock square on both sides (above and under) of the box the box is blocked along this axis
         #     If there is a box one the above or under side then this box is blocked if the other box is blocked. 
         y_axis_freeze = False
-        if (matrix[x][y + 1] == '#' or matrix[x][y - 1] == '#'):
+        if matrix[x][y + 1] == '#' or matrix[x][y - 1] == '#':
             y_axis_freeze = True
         elif has_simple_deadlock[x][y + 1] and has_simple_deadlock[x][y - 1]:
             y_axis_freeze = True
@@ -167,32 +167,48 @@ class DeadlockSolver:
         #If the new box position doesn't make a goal state, we accept this situation as freeze deadlock
         all_box_not_in_goal = False
         for box in checked_list:
-            if (box not in goal_pos):
+            if box not in goal_pos:
                 all_box_not_in_goal = True
 
         return x_axis_freeze and y_axis_freeze and all_box_not_in_goal
 
 class Search:
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
+        """
+        Creat a new Search object
+        @param num_row: the number of rows of matrix
+        @param num_col: the number of columns of matrix
+        @param box_pos: A set of tuples which displays the positions of boxes
+        @param goal_pos: a set of tuple displays positions of the goals
+        @param player_pos: A tuple which displays the position of player in a state
+        """
         self.num_row = num_row
         self.num_col = num_col
         self.matrix = matrix
         self.initial_state = State(box_pos, player_pos, None)
         self.goal_pos = goal_pos
+        #add new attribute has_simple_deadlock to track simple deadlock postition
         self.has_simple_deadlock = DeadlockSolver.has_simple_deadlock(self.matrix, self.num_row, self.num_col, self.goal_pos)
 
     def can_go_up(self, current_state):
+        """
+        Check if player can go up to make a new state
+        @param current_state: the current state object of searching
+        @return: a boolean value show that whether a new state is valid
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
-        if (x <= 1):
+        #The player can go up if all of the following checks are true:
+            #The player x-coordinate position greater than 1
+            #The above of player position is not a wall
+            #If the above player is a box then:
+                #The above of that box must not be a wall and a box
+                #The above of that box must not has any types of deadlocks
+        if x <= 1:
             return False
         t1 = self.matrix[x - 1][y]
         t2 = self.matrix[x - 2][y]
         box_pos = current_state.box_pos
-        if ((x - 1, y) in box_pos):
-            new_box = box_pos.copy()
-            new_box.remove((x - 1, y))
-            new_box.add((x - 2, y))
         if t1 == '#':
             return False
         elif (x - 1, y) in box_pos:
@@ -205,37 +221,47 @@ class Search:
                 if DeadlockSolver.has_freeze_deadlock((x - 2, y), self.matrix, new_box, self.goal_pos, self.has_simple_deadlock, set()):
                     return False
         return True
-        
-        #continue execute if (x - 1, y) not a wall. 
-        #if (x - 1, y) have a box, then (x - 2, y) must be free
 
     def go_up(self, current_state, heuristic = None):
+        """
+        Move up the player and change the state
+        @param current_state: the current state object of searching
+        @param heuristic: the heuristic function if we implement A* algorithm
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
-        if ((x - 1, y) in current_state.box_pos):
+        #delete all box position and add new box position
+        if (x - 1, y) in current_state.box_pos:
             new_box_pos.remove((x - 1, y))
             new_box_pos.add((x - 2, y))
-        if (heuristic):
-            new_gval = current_state.gval + 1
-            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
+        #create g value and f value of new state by using heuristic function
+        if heuristic:
+            new_gval = current_state.gval + 1 #g value of new state = g value of current state + 1
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos) #f value = g value + value of heuristic function of new state
             return State(new_box_pos, (x - 1, y), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x - 1, y), current_state)
 
     def can_go_down(self, current_state):
+        """
+        Check if player can go down to make a new state
+        @param current_state: the current state object of searching
+        @return: a boolean value show that whether a new state is valid
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #The player can go down if all of the following checks are true:
+            #The player x-coordinate position smaller than num_row - 2
+            #The above of under position is not a wall
+            #If the under player is a box then:
+                #The under of that box must not be a wall and a box
+                #The under of that box must not has any types of deadlocks
         if (x >= self.num_row - 2):
             return False
         t1 = self.matrix[x + 1][y]
         t2 = self.matrix[x + 2][y]
-        # box_pos = current_state.box_pos
-
         box_pos = current_state.box_pos
-        if ((x + 1, y) in box_pos):
-            new_box = box_pos.copy()
-            new_box.remove((x + 1, y))
-            new_box.add((x + 2, y))
         if t1 == '#':
             return False
         elif (x + 1, y) in box_pos:
@@ -248,36 +274,47 @@ class Search:
                 if DeadlockSolver.has_freeze_deadlock((x + 2, y), self.matrix, new_box, self.goal_pos, self.has_simple_deadlock, set()):
                     return False
         return True
-        
-        #continue execute if (x + 1, y) not a wall. 
-        #if (x + 1, y) have a box, then (x + 2, y) must be free
-
 
     def go_down(self, current_state, heuristic = None):
+        """
+        Move down the player and change the state
+        @param current_state: the current state object of searching
+        @param heuristic: the heuristic function if we implement A* algorithm
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
+        #delete all box position and add new box position
         if ((x + 1, y) in current_state.box_pos):
             new_box_pos.remove((x + 1, y))
             new_box_pos.add((x + 2, y))
-        if (heuristic):
-            new_gval = current_state.gval + 1
-            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
+        #create g value and f value of new state by using heuristic function
+        if heuristic:
+            new_gval = current_state.gval + 1 #g value of new state = g value of current state + 1
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos) #f value = g value + value of heuristic function of new state
             return State(new_box_pos, (x + 1, y), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x + 1, y), current_state)
 
     def can_go_left(self, current_state):
+        """
+        Check if player can go left to make a new state
+        @param current_state: the current state object of searching
+        @return: a boolean value show that whether a new state is valid
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #The player can go down if all of the following checks are true:
+            #The player y-coordinate position greater than 1
+            #The left side of left position is not a wall
+            #If the left player is a box then:
+                #The left of that box must not be a wall and a box
+                #The left of that box must not has any types of deadlocks
         if (y <= 1):
             return False
         t1 = self.matrix[x][y - 1]
         t2 = self.matrix[x][y - 2]
         box_pos = current_state.box_pos
-        if ((x, y - 1) in box_pos):
-            new_box = box_pos.copy()
-            new_box.remove((x, y - 1))
-            new_box.add((x, y - 2))
         if t1 == '#':
             return False
         elif (x, y - 1) in box_pos:
@@ -290,35 +327,47 @@ class Search:
                 if DeadlockSolver.has_freeze_deadlock((x, y - 2), self.matrix, new_box, self.goal_pos, self.has_simple_deadlock, set()):
                     return False
         return True
-        
-        #continue execute if (x, y - 1) not a wall. 
-        #if (x, y - 1) have a box, then (x, y - 2) must be free
 
     def go_left(self, current_state, heuristic = None):
+        """
+        Move left the player and change the state
+        @param current_state: the current state object of searching
+        @param heuristic: the heuristic function if we implement A* algorithm
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
+        #delete all box position and add new box position
         if ((x, y - 1) in current_state.box_pos):
             new_box_pos.remove((x, y - 1))
             new_box_pos.add((x, y - 2))
-        if (heuristic):
-            new_gval = current_state.gval + 1
-            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
+        #create g value and f value of new state by using heuristic function
+        if heuristic:
+            new_gval = current_state.gval + 1 #g value of new state = g value of current state + 1
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos) #f value = g value + value of heuristic function of new state
             return State(new_box_pos, (x, y - 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y - 1), current_state)
 
     def can_go_right(self, current_state):
+        """
+        Check if player can go right to make a new state
+        @param current_state: the current state object of searching
+        @return: a boolean value show that whether a new state is valid
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #The player can go down if all of the following checks are true:
+            #The player y-coordinate position smaller than number of column - 2
+            #The right side of left position is not a wall
+            #If the right player is a box then:
+                #The right of that box must not be a wall and a box
+                #The right of that box must not has any types of deadlocks
         if (y >= self.num_col - 2): 
             return False
         t1 = self.matrix[x][y + 1]
         t2 = self.matrix[x][y + 2]
         box_pos = current_state.box_pos
-        if (x, y + 1) in box_pos:
-            new_box = box_pos.copy()
-            new_box.remove((x, y + 1))
-            new_box.add((x, y + 2))
         if t1 == '#':
             return False
         elif (x, y + 1) in box_pos:
@@ -331,20 +380,25 @@ class Search:
                 if DeadlockSolver.has_freeze_deadlock((x, y + 2), self.matrix, new_box, self.goal_pos, self.has_simple_deadlock, set()):
                     return False
         return True
-        
-        #continue execute if (x, y + 1) not a wall. 
-        #if (x, y + 1) have a box, then (x, y + 2) must be free
 
     def go_right(self, current_state, heuristic = None):
+        """
+        Move left the player and change the state
+        @param current_state: the current state object of searching
+        @param heuristic: the heuristic function if we implement A* algorithm
+        """
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
+        #create a set of tuples of box positions for a new state
         new_box_pos = current_state.deep_copy_box_pos()
+        #delete all box position and add new box position
         if ((x, y + 1) in current_state.box_pos):
             new_box_pos.remove((x, y + 1))
             new_box_pos.add((x, y + 2))
-        if (heuristic):
-            new_gval = current_state.gval + 1
-            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos)
+        #create g value and f value of new state by using heuristic function
+        if heuristic:
+            new_gval = current_state.gval + 1 #g value of new state = g value of current state + 1
+            new_fval = new_gval + heuristic(new_box_pos, self.goal_pos) #f value = g value + value of heuristic function of new state
             return State(new_box_pos, (x, y + 1), current_state, new_gval, new_fval) 
         return State(new_box_pos, (x, y + 1), current_state)
 
