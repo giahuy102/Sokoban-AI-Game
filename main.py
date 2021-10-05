@@ -484,22 +484,33 @@ class BFS(Search):
             self.handle(new_state, closed_set, frontier)
 
     def search(self):
+        """
+        Execute BFS algorithm
+        @return: the list of steps that the player should follow to reach the goal state
+        @return: the number of expanded nodes (number of nodes dequeued from the queue during searching process)
+        @return: the number of explored nodes (total number of nodes explored during searching process)
+        @return: the time of execution
+        """
         start_time = time.time()
-        frontier = Queue()
+        frontier = Queue() #the FIFO queue
         frontier.put(self.initial_state)
-        closed_set = set()
+        closed_set = set() #the set contains all nodes explored during searching process
         closed_set.add(self.initial_state)
-        a = 0
+        expanded_num = 0 #initialize number of expanded node as 0
+        #Repeat below steps until the frontier is empty:
+            #Dequeue node from frontier
+            #Check if it is goal state => True => Return solution
+            #Expand all valid neighbors of current state 
         while not frontier.empty():
-            a += 1
-            current_state = frontier.get()
+            expanded_num += 1
+            current_state = frontier.get() #get the head node of the queue
             if current_state.is_final_state(self.goal_pos):
-                print(a)
-                print("--- %s seconds ---" % (time.time() - start_time))
-                return self.construct_path(current_state)
+                path = self.construct_path(current_state)
+                execution_time = time.time() - start_time
+                return path, expanded_num, len(closed_set), execution_time
             self.expand(current_state, closed_set, frontier)
-        print("--- %s seconds ---" % (time.time() - start_time))
-        return ["Impossible"]
+        execution_time = time.time() - start_time
+        return ["Impossible"], expanded_num, len(closed_set), execution_time
 
 class AStar(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
@@ -575,7 +586,7 @@ class AStar(Search):
         @param y1: y-coordinate of object 1
         @param x2: x-coordinate of object 2 
         @param y2: y-coordinate of object 2
-        @return manhattan distance of 2 objects
+        @return: manhattan distance of 2 objects
         """
         return abs(x1 - x2) + abs(y1 - y2)
 
@@ -587,39 +598,48 @@ class AStar(Search):
         @return: a heuristic value (h value)
         """
         sum = 0
-        #for each box position, calculate its minimum distance to all the goals. 
-        #After that, calculate the sum of all that distances
+        #for each box position, calculate its minimum distance (use manhattan) among the distances to all the goals. 
+        #After that, calculate the sum of all that minimum distance distances
         for box in box_pos:
             sum = sum + min([self.manhattan(box[0], box[1], goal[0], goal[1]) for goal in goal_pos])
         return sum
 
     def search(self):
+        """
+        Execute A* search algorithm
+        @return: the list of steps that the player should follow to reach the goal state
+        @return: the number of expanded nodes (number of nodes dequeued from the queue during searching process)
+        @return: the number of explored nodes (total number of nodes explored during searching process)
+        @return: the time of execution
+        """
         start_time = time.time()
-        frontier = PriorityQueue()
+        frontier = PriorityQueue() #the priority queue
         frontier.put(self.initial_state)
-        closed_set = set()
+        closed_set = set() #the set contains all nodes explored during searching process
         closed_set.add(self.initial_state)
-        state_lookup_table = dict()
+        #the lookup table whose entries have references to all explored nodes
+        #It also contains a boolean value to check if a node in frontier queue or not
+        state_lookup_table = dict() 
         state_lookup_table[hash(self.initial_state)] = [self.initial_state, True]
-        a = 0
-
+        expanded_num = 0 #initialize number of expanded node as 0
+        #Repeat below steps until the frontier is empty:
+            #Dequeue node from frontier
+            #Check if it is goal state => True => Return solution
+            #Expand all valid neighbors of current state 
         while not frontier.empty():
-
-            a += 1
-
-            current_state = frontier.get()
+            expanded_num += 1
+            current_state = frontier.get() #get the node with highest priority (lowest cost) 
             state_lookup_table[hash(self.initial_state)][1] = False
             if current_state.is_final_state(self.goal_pos):
-                print(a)
-                print("--- %s seconds ---" % (time.time() - start_time))
-                return self.construct_path(current_state)
+                path = self.construct_path(current_state)
+                execution_time = time.time() - start_time
+                return path, expanded_num, len(closed_set), execution_time
             self.expand(current_state, closed_set, frontier, state_lookup_table)
-            #frontier.extend(self.expand(current_state, closed_set))
-        print("--- %s seconds ---" % (time.time() - start_time))
-        return ["Impossible"]
+        execution_time = time.time() - start_time
+        return ["Impossible"], expanded_num, len(closed_set), execution_time
 
 if __name__ == "__main__":
-    for i in range (1, 2):
+    for i in range (1, 41):
         print(i)
         with open('Mini Cosmos/Level_' + str(i) + '.txt', 'r') as file:
             matrix = [list(line.rstrip()) for line in file]
@@ -647,8 +667,12 @@ if __name__ == "__main__":
                 if (i > len(row) - 1):
                     row.append(' ')
 
-        ob = BFS(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
-        print(ob.search())
         ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
-        print(ob.search())
-        print("---------------------------------")
+        path, expanded_node, explored_node, execution_time = ob.search()
+        print(path)
+        print(expanded_node)
+        print(explored_node)
+        print(execution_time)
+        # ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+        # print(ob.search())
+        # print("---------------------------------")
