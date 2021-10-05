@@ -18,31 +18,63 @@ from queue import PriorityQueue, Queue
 
 class State:
     def __init__(self, box_pos, player_pos, ancestor, gval = -1, fval = -1):
+        """
+        Create a new state of sokoban game
+        @param box_pos: A set of tuples which displays the positions of boxes in a state 
+        @param player_pos: A tuple which displays the position of player in a state
+        @param ancestor: An object with State type which displays the state of ancestor (node) of current state (node)
+        @param gval: an integer number that is the cost of getting to current state. It's used when we implement A* algorithm
+        @param fval: a number (integer or real) that is the cost of getting from state to last state through current state.
+                     It's used when we implement A* algorithm
+        """
         self.box_pos = box_pos
         self.player_pos = player_pos
         self.ancestor = ancestor
         self.gval = gval
         self.fval = fval
 
-    #use __eq__ method to compare instance of classes
     def __eq__(self, state):
+        """
+        Used to compare the instances of the class with == operator
+        @param: another state (object) that we want to compare with current state (object)
+        @return: a boolean value shows whether states are equal 
+        """
         return self.player_pos == state.player_pos and self.box_pos == state.box_pos
 
-    #used to become hasable object -> object can be contained in set data structure
-    #frozenset is an immutable set -> element can not be added or removed
     def __hash__(self):
-        return hash((self.player_pos, frozenset(self.box_pos)))
+        """
+        The hash method must be implemented for actions to be inserted into sets 
+        and dictionaries (make a hashable object).
+        @return: The hash value of the action.
+        """
+        return hash((self.player_pos, frozenset(self.box_pos))) #use frozenset (immutable set) for creating hashable value
 
-    #use for priority queue
-    def __lt__(self, state):
+    def __lt__(self, state):    
+        """
+        For A* algorithm first we muse a priority queue data structure. This queue stores search nodes 
+        waiting to be expanded. Thus we need to define a node1 < node2 function by defining 
+        the __lt__ function. Dependent on the type of search this comparison function compares the h-value, 
+        the g-value or the f-value of the nodes. Note for the f-value we wish to break ties by letting 
+        node1 < node2 if they both have identical f-values but if node1 has a GREATER g value. 
+        This means that we expand nodes along deeper paths first causing the search to proceed directly to the goal
+        """
         if (self.fval == state.fval):
             return self.gval > state.gval
         return self.fval < state.fval
 
     def is_final_state(self, goal_pos):
+        """
+        Check if current state a goal state. The goal state has all boxes in all goal positions
+        @param goal_pos: positions of the goals
+        @return: a boolean value shows whether current state is goal state
+        """
         return self.box_pos == goal_pos
 
     def deep_copy_box_pos(self):
+        """
+        Deep copy of positon of boxes
+        @return: a copy value of the positions of boxes
+        """
         return self.box_pos.copy()
 
 
@@ -281,7 +313,7 @@ class Search:
         
         #continue execute if (x, y + 1) not a wall. 
         #if (x, y + 1) have a box, then (x, y + 2) must be free
-        
+
     def go_right(self, current_state, heuristic = None):
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
