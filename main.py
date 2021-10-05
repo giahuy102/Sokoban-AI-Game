@@ -15,6 +15,7 @@
 """
 
 import time
+from abc import ABC, abstractmethod
 from queue import PriorityQueue, Queue
 
 class State:
@@ -169,10 +170,9 @@ class DeadlockSolver:
         for box in checked_list:
             if box not in goal_pos:
                 all_box_not_in_goal = True
-
         return x_axis_freeze and y_axis_freeze and all_box_not_in_goal
 
-class Search:
+class Search(ABC):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
         """
         Creat a new Search object
@@ -252,7 +252,7 @@ class Search:
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         #The player can go down if all of the following checks are true:
-            #The player x-coordinate position smaller than num_row - 2
+            #The player x-coordinate position less than num_row - 2
             #The above of under position is not a wall
             #If the under player is a box then:
                 #The under of that box must not be a wall and a box
@@ -358,7 +358,7 @@ class Search:
         x = current_state.player_pos[0]
         y = current_state.player_pos[1]
         #The player can go down if all of the following checks are true:
-            #The player y-coordinate position smaller than number of column - 2
+            #The player y-coordinate position less than number of column - 2
             #The right side of left position is not a wall
             #If the right player is a box then:
                 #The right of that box must not be a wall and a box
@@ -403,7 +403,13 @@ class Search:
         return State(new_box_pos, (x, y + 1), current_state)
 
     def construct_path(self, state):
-        path = list()
+        """
+        Construct the path to goal state
+        @param state: the state to start construting the path
+        @return: The list of elements display the steps U, D, L, R conresponding to Up, Down, Left, Right
+        """
+        path = list() #initilize list of path
+        #Loop to go back to ancestor nodes until reaching initial node
         while (state.ancestor):
             x1 = state.ancestor.player_pos[0]
             y1 = state.ancestor.player_pos[1]
@@ -419,30 +425,56 @@ class Search:
                 path.insert(0, 'L')
             state = state.ancestor
         return path
-            
 
+    @abstractmethod
+    def search():
+        """
+        Abstract method for Search class
+        """
+        pass
+    
 class BFS(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
+        """
+        Creat a new BFS Search object
+        @param num_row: the number of rows of matrix
+        @param num_col: the number of columns of matrix
+        @param box_pos: A set of tuples which displays the positions of boxes
+        @param goal_pos: a set of tuple displays positions of the goals
+        @param player_pos: A tuple which displays the position of player in a state
+        """
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
 
     def handle(self, new_state, closed_set, frontier):
+        """
+        Handle closed_set and frontier queue after making a move
+        @param new_state: a state after making a move
+        @param closed_set: includes all nodes which are in the frontier queue or not in frontier queue but were explored
+        @param frontier: a FIFO queue of states (nodes)
+        """
+        #If this is the first time we have explored this state (not in closed_set):
+            #Add this state to closed_set
+            #Add this state to frontier queue
         if (new_state not in closed_set):
             closed_set.add(new_state)
             frontier.put(new_state)
 
     def expand(self, state, closed_set, frontier):
+        """
+        Function to expand all neighbors of a state
+        @param state: a state to be expanded
+        @param closed_set: includes all nodes which are in the frontier queue or not in frontier queue but were explored
+        @param frontier: a FIFO queue of states (nodes)
+        """
         if (self.can_go_up(state)):
             new_state = self.go_up(state)
             self.handle(new_state, closed_set, frontier)
-
         if (self.can_go_right(state)):
             new_state = self.go_right(state)
             self.handle(new_state, closed_set, frontier)
-
         if (self.can_go_left(state)):
             new_state = self.go_left(state)
             self.handle(new_state, closed_set, frontier)
-
         if (self.can_go_down(state)):
             new_state = self.go_down(state)
             self.handle(new_state, closed_set, frontier)
@@ -465,19 +497,42 @@ class BFS(Search):
         print("--- %s seconds ---" % (time.time() - start_time))
         return ["Impossible"]
 
-
 class AStar(Search):
     def __init__(self, num_row, num_col, matrix, box_pos, goal_pos, player_pos):
+        """
+        Creat a new AStar Search object
+        @param num_row: the number of rows of matrix
+        @param num_col: the number of columns of matrix
+        @param box_pos: A set of tuples which displays the positions of boxes
+        @param goal_pos: a set of tuple displays positions of the goals
+        @param player_pos: A tuple which displays the position of player in a state
+        """
         super().__init__(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
+        #initialize g value and f value for initial state
         self.initial_state.gval = 0
         self.initial_state.fval = self.heuristic(box_pos, goal_pos)
 
     def handle(self, new_state, closed_set, frontier, state_lookup_table):
+        """
+        Handle closed_set and frontier queue after making a move
+        @param new_state: a state after making a move
+        @param closed_set: includes all nodes which are in the frontier queue or not in frontier queue but were explored
+        @param frontier: a Priority queue of states (nodes)
+        @param state_lookup_table: contains entries which have reference to all states that have been explored so far.
+        Each entry also has a boolean value to check if the node is in frontier or not
+        """
+        #If this is the first time we have explored this state (not in closed_set):
+            #Add this state to closed_set
+            #Add this state to frontier queue 
+            #Update lookup table
         if (new_state not in closed_set):
             closed_set.add(new_state)
             frontier.put(new_state)
             state_lookup_table[hash(new_state)] = [new_state, True]
         else:
+            #If this state was explored before and have g value less than new g value:
+                #Update values of that state to new state
+                #if that state not in frontier then add it to frontier
             id = hash(new_state)
             if (new_state.gval < state_lookup_table[id][0].gval):
                 state_lookup_table[id][0].fval = new_state.fval
@@ -488,26 +543,49 @@ class AStar(Search):
                     frontier.put(new_state)
 
     def expand(self, state, closed_set, frontier, state_lookup_table):
+        """
+        Function to expand all neighbors of a state
+        @param state: a state to be expanded
+        @param closed_set: includes all nodes which are in the frontier queue or not in frontier queue but were explored
+        @param frontier: a Priority queue of states (nodes)
+        @param state_lookup_table: contains entries which have reference to all states that have been explored so far.
+        Each entry also has a boolean value to check if the node is in frontier or not
+        """
         if (self.can_go_up(state)):
             new_state = self.go_up(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
-
         if (self.can_go_right(state)):
             new_state = self.go_right(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
-
         if (self.can_go_left(state)):
             new_state = self.go_left(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
-
         if (self.can_go_down(state)):
             new_state = self.go_down(state, self.heuristic)
             self.handle(new_state, closed_set, frontier, state_lookup_table)
 
+    def manhattan(self, x1, y1, x2, y2):
+        """
+        Calculate manhattan distance
+        @param x1: x-coordinate of object 1
+        @param y1: y-coordinate of object 1
+        @param x2: x-coordinate of object 2 
+        @param y2: y-coordinate of object 2
+        @return manhattan distance of 2 objects
+        """
+        return abs(x1 - x2) + abs(y1 - y2)
+
     def heuristic(self, box_pos, goal_pos):
+        """
+        Heuristic function for A Star Algorithm
+        @param box_pos: A set of tuples which displays the positions of boxes
+        @param goal_pos: a set of tuple displays positions of the goals
+        """
         sum = 0
+        #for each box position, calculate its minimum distance to all the goals. 
+        #After that, calculate the sum of all that distances
         for box in box_pos:
-            sum = sum + min([abs(box[0] - goal[0]) + abs(box[1] - goal[1]) for goal in goal_pos])
+            sum = sum + min([self.manhattan(box[0], box[1], goal[0], goal[1]) for goal in goal_pos])
         return sum
 
     def search(self):
