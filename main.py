@@ -60,7 +60,7 @@ class State:
         node1 < node2 if they both have identical f-values but if node1 has a GREATER g value. 
         This means that we expand nodes along deeper paths first causing the search to proceed directly to the goal
         """
-        if (self.fval == state.fval):
+        if self.fval == state.fval:
             return self.gval > state.gval
         return self.fval < state.fval
 
@@ -102,22 +102,22 @@ class DeadlockSolver:
                 (x, y) = q.get()
                 #We can pull a box up if position (x - 1, y) and (x - 2, y) are not the walls
                 if matrix[x - 1][y] != '#' and matrix[x - 2][y] != '#':
-                    if (matrix_flag[x - 1][y]):
+                    if matrix_flag[x - 1][y]:
                         q.put((x - 1, y))
                         matrix_flag[x - 1][y] = False #This position is not a deadlock
                 #We can pull a box down if position (x + 1, y) and (x + 2, y) are not the walls
                 if matrix[x + 1][y] != '#' and matrix[x + 2][y] != '#':
-                    if (matrix_flag[x + 1][y]):
+                    if matrix_flag[x + 1][y]:
                         q.put((x + 1, y))
                         matrix_flag[x + 1][y] = False #This position is not a deadlock
                 #We can pull a box left if position (x, y - 1) and (x, y - 2) are not the walls
                 if matrix[x][y - 1] != '#' and matrix[x][y - 2] != '#':
-                    if (matrix_flag[x][y - 1]):
+                    if matrix_flag[x][y - 1]:
                         q.put((x, y - 1))
                         matrix_flag[x][y - 1] = False #This position is not a deadlock
                 #We can pull a box right if position (x, y + 1) and (x, y + 2) are not the walls
                 if matrix[x][y + 1] != '#' and matrix[x][y + 2] != '#':
-                    if (matrix_flag[x][y + 1]):
+                    if matrix_flag[x][y + 1]:
                         q.put((x, y + 1))
                         matrix_flag[x][y + 1] = False #This position is not a deadlock
         return matrix_flag
@@ -312,7 +312,7 @@ class Search(ABC):
             #If the left player is a box then:
                 #The left of that box must not be a wall and a box
                 #The left of that box must not has any types of deadlocks
-        if (y <= 1):
+        if y <= 1:
             return False
         t1 = self.matrix[x][y - 1]
         t2 = self.matrix[x][y - 2]
@@ -419,11 +419,11 @@ class Search(ABC):
             y1 = state.ancestor.player_pos[1]
             x2 = state.player_pos[0]
             y2 = state.player_pos[1]
-            if (x2 > x1):
+            if x2 > x1:
                 path.insert(0, 'D')
-            elif (x2 < x1):
+            elif x2 < x1:
                 path.insert(0, 'U')
-            elif (y2 > y1):
+            elif y2 > y1:
                 path.insert(0, 'R')
             else:
                 path.insert(0, 'L')
@@ -664,7 +664,7 @@ if __name__ == "__main__":
         #add extra " " character to some lines of matrix
         for row in matrix:
             for i in range(num_col):
-                if (i > len(row) - 1):
+                if i > len(row) - 1:
                     row.append(' ')
 
         ob = AStar(num_row, num_col, matrix, box_pos, goal_pos, player_pos)
